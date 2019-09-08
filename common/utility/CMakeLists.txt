@@ -9,9 +9,9 @@ set(LIB_SRCS
 add_library(${MODULE_NAME} ${LIB_SRCS})
 target_link_libraries(${MODULE_NAME} Pdh.lib)
 
-add_executable(sysinfo_utility_win_unitest sysinfo_utility_win_unitest.cc)
-target_link_libraries(sysinfo_utility_win_unitest ${MODULE_NAME})
+add_executable(sysinfo_utility_win_functest sysinfo_utility_win_functest.cc)
+target_link_libraries(sysinfo_utility_win_functest ${MODULE_NAME})
 
-add_executable(mail_smtp_unittest mail_smtp_unittest.cc)
-target_link_libraries(mail_smtp_unittest glog gtest libssl libcrypto ws2_32.lib)
+add_executable(mail_smtp_functest mail_smtp_functest.cc)
+target_link_libraries(mail_smtp_functest glog gtest libssl libcrypto ws2_32.lib)
 
