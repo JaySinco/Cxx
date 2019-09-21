@@ -15,3 +15,5 @@ target_link_libraries(sysinfo_utility_win_functest ${MODULE_NAME})
 add_executable(mail_smtp_functest mail_smtp_functest.cc)
 target_link_libraries(mail_smtp_functest glog gtest libssl libcrypto ws2_32.lib)
 
+add_executable(hint_mouse_functest hint_mouse_functest.cc)
+target_link_libraries(hint_mouse_functest ${MODULE_NAME})

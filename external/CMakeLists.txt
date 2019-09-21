@@ -18,3 +18,13 @@ set_target_properties(libcrypto PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}
 
 add_library(libmxnet STATIC IMPORTED GLOBAL)
 set_target_properties(libmxnet PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/lib/libmxnet.lib)
+
+add_library(glfw STATIC IMPORTED GLOBAL)
+set_target_properties(glfw PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/glfw/lib/glfw3.lib)
+
+add_subdirectory(glad)
+add_subdirectory(imgui)
+
+add_dependencies(__target_${MODULE_NAME}
+    ${SUBDIRECTORY_TARGETS}
+    )

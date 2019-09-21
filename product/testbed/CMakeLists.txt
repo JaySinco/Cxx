@@ -6,4 +6,4 @@ set(LIB_SRCS
     )
 
 add_executable(testbed ${LIB_SRCS})
-target_link_libraries(testbed glog gtest common_utility)
+target_link_libraries(testbed glog glfw glad imgui opengl32.lib)
