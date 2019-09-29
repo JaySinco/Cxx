@@ -3,7 +3,7 @@
 #include <sstream>
 #include <thread>
 
-#include "common/utility/sysinfo_utility_win.h"
+#include "common/utility/sysinfo_win.h"
 
 #define RL(x) ((double)x * GetSystemMetrics(SM_CXFULLSCREEN) * gDPI)
 

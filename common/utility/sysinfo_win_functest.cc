@@ -1,4 +1,4 @@
-#include "sysinfo_utility_win.h"
+#include "sysinfo_win.h"
 
 #include <iostream>
 #include <iomanip>

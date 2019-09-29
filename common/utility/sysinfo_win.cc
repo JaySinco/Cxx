@@ -1,7 +1,7 @@
 #include <Windows.h>
 #include <Pdh.h>
 #include <sstream>
-#include "sysinfo_utility_win.h"
+#include "sysinfo_win.h"
 
 #define DIV 1024
 #define INTERVAL 100
