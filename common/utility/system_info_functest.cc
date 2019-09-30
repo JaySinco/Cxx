@@ -1,7 +1,8 @@
-#include "sysinfo_win.h"
-
 #include <iostream>
 #include <iomanip>
+#include "system_info.h"
+
+using namespace cxx;
 
 int main(int argc, char **argv)
 {

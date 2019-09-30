@@ -3,11 +3,11 @@
 #include <sstream>
 #include <thread>
 
-#include "common/utility/sysinfo_win.h"
+#include "common/utility/system_info.h"
 
 #define RL(x) ((double)x * GetSystemMetrics(SM_CXFULLSCREEN) * gDPI)
 
-double gDPI = WinInfoUtility::GetDPI() / 96;
+double gDPI = cxx::WinInfoUtility::GetDPI() / 96;
 HWND gWindow = NULL;
 DWORD gMessageThreadId = -1;
 HHOOK gMouseHook = NULL;

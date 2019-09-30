@@ -1,45 +1,42 @@
 #include <Windows.h>
 #include <Pdh.h>
 #include <sstream>
-#include "sysinfo_win.h"
+#include "system_info.h"
 
 #define DIV 1024
 #define INTERVAL 100
 
-uint64_t WinInfoUtility::GetMemoryTotal()
-{
+namespace cxx {
+
+uint64_t WinInfoUtility::GetMemoryTotal() {
     MEMORYSTATUSEX mStatus;
     mStatus.dwLength = sizeof(mStatus);
     GlobalMemoryStatusEx(&mStatus);
     return mStatus.ullTotalPhys / DIV / DIV;
 }
 
-uint64_t WinInfoUtility::GetMemoryAvailable()
-{
+uint64_t WinInfoUtility::GetMemoryAvailable() {
     MEMORYSTATUSEX mStatus;
     mStatus.dwLength = sizeof(mStatus);
     GlobalMemoryStatusEx(&mStatus);
     return mStatus.ullAvailPhys / DIV / DIV;
 }
 
-uint64_t WinInfoUtility::GetMemoryUsed()
-{
+uint64_t WinInfoUtility::GetMemoryUsed() {
     MEMORYSTATUSEX mStatus;
     mStatus.dwLength = sizeof(mStatus);
     GlobalMemoryStatusEx(&mStatus);
     return (mStatus.ullTotalPhys - mStatus.ullAvailPhys) / DIV / DIV;
 }
 
-uint64_t WinInfoUtility::GetMemoryLoad()
-{
+uint64_t WinInfoUtility::GetMemoryLoad() {
     MEMORYSTATUSEX mStatus;
     mStatus.dwLength = sizeof(mStatus);
     GlobalMemoryStatusEx(&mStatus);
     return mStatus.dwMemoryLoad;
 }
 
-uint64_t WinInfoUtility::GetDriveTotalSize(const std::string &c)
-{
+uint64_t WinInfoUtility::GetDriveTotalSize(const std::string &c) {
     DWORDLONG C_FreeBytesAvailable = 0;
     DWORDLONG C_TotalNumberOfBytes = 0;
     DWORDLONG C_TotalNumberOfFreeBytes = 0;
@@ -48,8 +45,7 @@ uint64_t WinInfoUtility::GetDriveTotalSize(const std::string &c)
     return C_TotalNumberOfBytes / DIV / DIV / DIV; // GB
 }
 
-uint64_t WinInfoUtility::GetDriveFreeSize(const std::string &c)
-{
+uint64_t WinInfoUtility::GetDriveFreeSize(const std::string &c) {
     DWORDLONG C_FreeBytesAvailable = 0;
     DWORDLONG C_TotalNumberOfBytes = 0;
     DWORDLONG C_TotalNumberOfFreeBytes = 0;
@@ -58,8 +54,7 @@ uint64_t WinInfoUtility::GetDriveFreeSize(const std::string &c)
     return C_TotalNumberOfFreeBytes / DIV / DIV / DIV; // GB
 }
 
-uint64_t WinInfoUtility::GetDriveUsedSize(const std::string &c)
-{
+uint64_t WinInfoUtility::GetDriveUsedSize(const std::string &c) {
     DWORDLONG C_FreeBytesAvailable = 0;
     DWORDLONG C_TotalNumberOfBytes = 0;
     DWORDLONG C_TotalNumberOfFreeBytes = 0;
@@ -68,8 +63,7 @@ uint64_t WinInfoUtility::GetDriveUsedSize(const std::string &c)
     return (C_TotalNumberOfBytes - C_TotalNumberOfFreeBytes) / DIV / DIV / DIV; // GB
 }
 
-double WinInfoUtility::CalculateIOSpeedInPdh(const char *CounterPath)
-{
+double WinInfoUtility::CalculateIOSpeedInPdh(const char *CounterPath) {
     HQUERY query;
     PDH_STATUS status;
     status = PdhOpenQuery(NULL, NULL, &query);
@@ -87,9 +81,7 @@ double WinInfoUtility::CalculateIOSpeedInPdh(const char *CounterPath)
     return speed;
 }
 
-double WinInfoUtility::GetDiskReadSpeed(const std::string &driver)
-{
-    //TODO: Statistics of different discs
+double WinInfoUtility::GetDiskReadSpeed(const std::string &driver) {
     std::stringstream ss1;
     ss1 << "\\PhysicalDisk(" << driver << ")\\Disk Read Bytes/sec";
     std::string ReadSpeedCounterPath = ss1.str();
@@ -97,9 +89,7 @@ double WinInfoUtility::GetDiskReadSpeed(const std::string &driver)
     return ReadSpeed / DIV; //'KB'
 }
 
-double WinInfoUtility::GetDiskWriteSpeed(const std::string &driver)
-{
-    //TODO: Statistics of different discs
+double WinInfoUtility::GetDiskWriteSpeed(const std::string &driver) {
     std::stringstream ss1;
     ss1 << "\\PhysicalDisk(" << driver << ")\\Disk Write Bytes/sec";
     std::string WriteSpeedCounterPath = ss1.str();
@@ -107,8 +97,7 @@ double WinInfoUtility::GetDiskWriteSpeed(const std::string &driver)
     return WriteSpeed / DIV; //'KB'
 }
 
-int WinInfoUtility::GetCPURate()
-{
+int WinInfoUtility::GetCPURate() {
     HQUERY query;
     HCOUNTER counter;
     PDH_STATUS status;
@@ -128,29 +117,25 @@ int WinInfoUtility::GetCPURate()
     return CpuUsedRate;
 }
 
-double WinInfoUtility::GetNetDownloadSpeed()
-{
+double WinInfoUtility::GetNetDownloadSpeed() {
     std::string ReadSpeedCounterPath = "\\Network Interface(*)\\Bytes Received/sec";
     double ReadSpeed = CalculateIOSpeedInPdh(ReadSpeedCounterPath.c_str());
     return ReadSpeed / DIV; //'KB'
 }
 
-double WinInfoUtility::GetNetUploadSpeed()
-{
+double WinInfoUtility::GetNetUploadSpeed() {
     std::string WriteSpeedCounterPath = "\\Network Interface(*)\\Bytes Sent/sec";
     double WriteSpeed = CalculateIOSpeedInPdh(WriteSpeedCounterPath.c_str());
     return WriteSpeed / DIV; //'KB'
 }
 
-std::pair<int, int> WinInfoUtility::GetResolution()
-{
+std::pair<int, int> WinInfoUtility::GetResolution() {
     int width = GetSystemMetrics(SM_CXSCREEN);
     int height = GetSystemMetrics(SM_CYSCREEN);
     return std::pair<int, int>(width, height);
 }
 
-double WinInfoUtility::GetDPI()
-{
+double WinInfoUtility::GetDPI() {
     double dpi = 0;
     HKEY hKEY;
     LPCTSTR data_set = "Control Panel\\Desktop\\WindowMetrics";
@@ -166,4 +151,6 @@ double WinInfoUtility::GetDPI()
     }
     RegCloseKey(hKEY);
     return dpi;
+}
+
 }
