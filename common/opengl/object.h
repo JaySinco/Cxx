@@ -1,24 +1,21 @@
 #pragma once
-#include <vector>
 #include "shader.h"
+#include "texture.h"
+#include "model.h"
 
 namespace cxx {
 
 class Object {
 public:
-    Object(const std::string &name, const std::vector<float> &vertices, 
-        const std::vector<unsigned> &indices);
-    Object(const Object&) = delete;
-    ~Object() {
-        LOG(INFO) << "delete object, id=\"" << id << "\"";
-        glDeleteVertexArrays(1, &VAO);
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
-    }
-    void draw();
+    Object(const std::string &name);
+    void load(std::shared_ptr<Shader> shader_ptr);
+    void load(std::shared_ptr<Model> model_ptr);
+    void load(std::shared_ptr<Texture> texture_ptr);
+    void render() const;
 private:
-    unsigned VAO, VBO, EBO;
-    int count;
+    std::shared_ptr<Shader> shader;
+    std::shared_ptr<Model> model;
+    std::shared_ptr<Texture> texture;
     std::string id;
 };
 

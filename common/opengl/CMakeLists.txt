@@ -6,6 +6,8 @@ set(LIB_SRCS
     shader.cc
     texture.h
     texture.cc
+    model.h
+    model.cc
     object.h
     object.cc
     )

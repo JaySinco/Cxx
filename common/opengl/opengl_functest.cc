@@ -1,8 +1,8 @@
 #define GLOG_NO_ABBREVIATED_SEVERITIES
 #define GOOGLE_GLOG_DLL_DECL
 #include <glog/logging.h>
-#include "shader.h"
-#include "texture.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include "object.h"
 #define RESOURCE(relpath) ("D:\\Jaysinco\\Cxx\\common\\opengl\\resources\\" relpath)
 
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     FLAGS_minloglevel = 0;
 
     GLFWwindow* window = initForWindow(800, 600, "OpenGL_Functest");
-    Shader shader("shader", RESOURCE("shaders\\texture.vs"), RESOURCE("shaders\\texture.fs"));
+    
     std::vector<float> vertices {
         // positions          // colors           // texture coords
          0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
@@ -58,23 +58,37 @@ int main(int argc, char *argv[])
         0, 1, 3, // first triangle
         1, 2, 3  // second triangle
     };
-    
-    Object triangle("triangle", vertices, indices);
-    Texture container("container", RESOURCE("textures\\container.jpg"));
-    Texture awesomeface("awesomeface", RESOURCE("textures\\awesomeface.jpg"), true);
-    shader.setInt("texture1", 0);
-    shader.setInt("texture2", 1);
 
+    Object obj("rect");
+    auto shader = Shader::fromFile("shader", RESOURCE("shaders\\texture.vs"), RESOURCE("shaders\\texture.fs"));
+    auto model = Model::fromRawData("two triangle", vertices, indices, {Model::POS, Model::COLOR, Model::TEXT});
+    auto texture1 = Texture::fromFile("container", RESOURCE("textures\\container.jpg"));
+    auto texture2 = Texture::fromFile("awesomeface", RESOURCE("textures\\awesomeface.jpg"), true);
+    obj.load(shader);
+    obj.load(model);
+    obj.load(texture1);
+
+    int flag = 1;
+    bool pressed = false;
     while (!glfwWindowShouldClose(window)) {
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            glfwSetWindowShouldClose(window, true);
+        switch (glfwGetKey(window, GLFW_KEY_TAB)) {
+            case GLFW_PRESS:
+                pressed = true;
+                break;
+            case GLFW_RELEASE:
+                if (pressed) {
+                    LOG(INFO) << "TAB triggered!";
+                    flag *= -1;
+                    if (flag == 1) obj.load(texture1);
+                    if (flag == -1) obj.load(texture2);
+                    pressed = false;
+                }
+                break;
+        }
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        container.use(0);
-        awesomeface.use(1);
-        shader.use();
-        triangle.draw();
+        obj.render();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

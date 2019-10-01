@@ -1,10 +1,17 @@
 #define GLOG_NO_ABBREVIATED_SEVERITIES
 #define GOOGLE_GLOG_DLL_DECL
 #include <glog/logging.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <opencv2/highgui/highgui.hpp>
 #include "texture.h"
 
 namespace cxx {
+
+std::shared_ptr<Texture> Texture::fromFile(const std::string &name, 
+        const std::string &path, bool flip) {
+    return std::make_shared<Texture>(name, path, flip);    
+}
 
 Texture::Texture(const std::string &name, const std::string &path, bool flip): id(name) {
     glGenTextures(1, &texture);
@@ -26,6 +33,16 @@ Texture::Texture(const std::string &name, const std::string &path, bool flip): i
         LOG(ERROR) << "failed to load texture, path=\"" << path << "\"";
         exit(-1);
     }
+}
+
+Texture::~Texture() {
+    LOG(INFO) << "delete texture, id=\"" << id << "\"";
+    glDeleteTextures(1, &texture);
+}
+
+void Texture::use(unsigned index) const { 
+    glActiveTexture(GL_TEXTURE0 + index);
+    glBindTexture(GL_TEXTURE_2D, texture);
 }
 
 }
