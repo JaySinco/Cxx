@@ -2,19 +2,16 @@
 #define GOOGLE_GLOG_DLL_DECL
 #include <glog/logging.h>
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <numeric>
 #include "model.h"
 
 namespace cxx {
 
-std::shared_ptr<Model> Model::fromRawData(const std::string &name,
-        const VERTEX_DATA &vertices, const INDEX_DATA &indices, const ATTRIB_DATA &attr) {
-    return std::make_shared<Model>(name, vertices, indices, attr);
-}
-
-Model::Model(const std::string &name, const VERTEX_DATA &vertices, 
-        const INDEX_DATA &indices, const ATTRIB_DATA &attr): id(name) {
+Model::Model(
+        const std::string &name,
+        const std::vector<float> &vertices, 
+        const std::vector<unsigned> &indices,
+        const std::vector<VERTEX_ATTR> &attr): id(name) {
     load(vertices, indices, attr);
 }
 
@@ -30,8 +27,10 @@ void Model::draw() const {
     glDrawElements(GL_TRIANGLES, indices_count, GL_UNSIGNED_INT, 0);
 }
 
-void Model::load(const VERTEX_DATA &vertices, const INDEX_DATA &indices, 
-        const ATTRIB_DATA &attr) {
+void Model::load(
+        const std::vector<float> &vertices,
+        const std::vector<unsigned> &indices,
+        const std::vector<VERTEX_ATTR> &attr) {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -40,7 +39,7 @@ void Model::load(const VERTEX_DATA &vertices, const INDEX_DATA &indices,
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*vertices.size(), vertices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned)*indices.size(), indices.data(), GL_STATIC_DRAW);
-    indices_count = indices.size();
+    indices_count = static_cast<unsigned>(indices.size());
     unsigned total_size = std::accumulate(attr.cbegin(), attr.cend(), 0);
     unsigned offset = 0;
     for (unsigned i = 0; i < attr.size(); ++i) {

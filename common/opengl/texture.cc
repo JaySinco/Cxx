@@ -2,18 +2,13 @@
 #define GOOGLE_GLOG_DLL_DECL
 #include <glog/logging.h>
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <opencv2/highgui/highgui.hpp>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 #include "texture.h"
 
 namespace cxx {
 
-std::shared_ptr<Texture> Texture::fromFile(const std::string &name, 
-        const std::string &path, bool flip) {
-    return std::make_shared<Texture>(name, path, flip);    
-}
-
-Texture::Texture(const std::string &name, const std::string &path, bool flip): id(name) {
+Texture::Texture(const std::string &name, const std::string &path, bool flip_y_aixs): id(name) {
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture); 
      // set the texture wrapping parameters
@@ -23,16 +18,17 @@ Texture::Texture(const std::string &name, const std::string &path, bool flip): i
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // load image, create texture and generate mipmaps
-    cv::Mat image = cv::imread(path, cv::IMREAD_COLOR);
-    if (flip)
-        cv::flip(image, image, 0);
-    if (!image.empty()) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.cols, image.rows, 0, GL_BGR, GL_UNSIGNED_BYTE, image.data);
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(flip_y_aixs);
+    unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0); 
+    if (data) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
         LOG(ERROR) << "failed to load texture, path=\"" << path << "\"";
         exit(-1);
     }
+    stbi_image_free(data);
 }
 
 Texture::~Texture() {

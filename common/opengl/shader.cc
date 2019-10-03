@@ -2,7 +2,6 @@
 #define GOOGLE_GLOG_DLL_DECL
 #include <glog/logging.h>
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -10,12 +9,9 @@
 
 namespace cxx {
 
-std::shared_ptr<Shader> Shader::fromFile(const std::string &name, 
-        const std::string &vsPath, const std::string &fsPath) {
-    return std::make_shared<Shader>(name, vsPath, fsPath);
-}
-
-Shader::Shader(const std::string &name, const std::string &vsPath, 
+Shader::Shader(
+        const std::string &name,
+        const std::string &vsPath, 
         const std::string &fsPath): id(name) {
     std::ifstream vsFile(vsPath), fsFile(fsPath);
     if (!vsFile) {
@@ -70,6 +66,11 @@ void Shader::setInt(const std::string &name, int value) const {
 void Shader::setFloat(const std::string &name, float value) const {
     use();
     glUniform1f(glGetUniformLocation(program, name.c_str()), value);
+}
+
+void Shader::setMat4(const std::string &name, const glm::mat4 &value) const {
+    use();
+    glUniformMatrix4fv(glGetUniformLocation(program, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
 void Shader::checkError(GLuint shader, const std::string &type) const {

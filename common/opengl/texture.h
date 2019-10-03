@@ -6,9 +6,7 @@ namespace cxx {
 
 class Texture {
 public:
-    static std::shared_ptr<Texture> fromFile(const std::string &name, 
-        const std::string &path, bool flip = false);
-    Texture(const std::string &name, const std::string &path, bool flip);
+    Texture(const std::string &name, const std::string &path, bool flip_y_aixs = false);
     Texture(const Texture&) = delete;
     ~Texture();
     void use(unsigned index = 0) const;
