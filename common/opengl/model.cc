@@ -7,6 +7,8 @@
 #include <array>
 #include <map>
 #include <fstream>
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
 #include "model.h"
 
 namespace cxx {
@@ -69,93 +71,78 @@ void Model::load(
     glBindVertexArray(0);
 }
 
+struct IndexKey {
+    int vertexIndex;
+    int normalIndex;
+    int texcoordIndex;
+    bool operator<(const IndexKey &other) const {
+        return (vertexIndex < other.vertexIndex) ||
+            (normalIndex < other.normalIndex) || (texcoordIndex < other.texcoordIndex);
+    }
+};
+
 void Model::readObjFile(
         const std::string &path, 
         std::vector<float> &vertices,
         std::vector<unsigned> &indices,
         std::vector<VERTEX_ATTR> &attr) {
-    std::ifstream modelFile(path);
-    if (!modelFile) {
-        LOG(ERROR) << "failed to load .obj model, path=\"" << path << "\"";
+    tinyobj::attrib_t attrib;
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+    std::string err;
+    bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, path.c_str());
+    if (!ret || shapes.size() <= 0) {
+        LOG(ERROR) << "failed to load .obj model, path=\""
+            << path << "\", err=\"" << err << "\"";
         exit(-1);
     }
-    std::vector<std::array<float, 3>> raw_v;
-    std::vector<std::array<float, 2>> raw_vt;
-    std::vector<std::array<float, 3>> raw_vn;
-    std::map<std::string, int> speedUp;
-    std::string line;
-    int indiceIndex = 0;
-    int faceCount = 0;
-    bool meetF = false;  
-    while (std::getline(modelFile, line)) {
-        std::istringstream iss(line);
-        char trash;
-        if (line.substr(0, 2) == "v ") {
-            iss >> trash;
-            std::array<float, 3> v;
-            for (int i = 0; i<3; ++i) 
-                iss >> v[i];
-            raw_v.push_back(v);
-        }
-        else if (line.substr(0, 2) == "vn") {
-            iss >> trash >> trash;
-            std::array<float, 3> vn;
-            for (int i = 0; i < 3; ++i)
-                iss >> vn[i];
-            raw_vn.push_back(vn);
-        }
-        else if (line.substr(0, 2) == "vt") {
-            iss >> trash >> trash;
-            std::array<float, 2> vt;
-            for (int i = 0; i<2; ++i)
-                iss >> vt[i];
-            raw_vt.push_back(vt);
-        }
-        else if (line.substr(0, 2) == "f ") {
-            ++faceCount;
-            if (!meetF) {
-                if (raw_v.size() > 0)  attr.push_back(POS);
-                if (raw_vt.size() > 0) attr.push_back(TXR);
-                if (raw_vn.size() > 0) attr.push_back(NORM);
-                meetF = true;
+    if (shapes.size() > 1)
+        LOG(WARNING) << "find " << shapes.size() 
+            << " shapes in .obj model, load only first one";
+
+    if (attrib.vertices.size() > 0)  attr.push_back(POS);
+    if (attrib.texcoords.size() > 0) attr.push_back(TXR);
+    if (attrib.normals.size() > 0) attr.push_back(NORM);
+
+    LOG(INFO) << "model(id=\"" << id << "\") loaded from \"" << path <<  "\" (#v" << attrib.vertices.size()
+        << " #vn" << attrib.normals.size()  << " #vt" << attrib.texcoords.size()
+        << " #f" << shapes[0].mesh.num_face_vertices.size() << ")";
+
+    unsigned indiceIndex = 0;
+    std::map<IndexKey, unsigned> speedUp;
+    size_t index_offset = 0;
+    for (size_t f = 0; f < shapes[0].mesh.num_face_vertices.size(); f++) {
+        int fv = shapes[0].mesh.num_face_vertices[f];
+        for (size_t v = 0; v < fv; v++) {
+            tinyobj::index_t idx = shapes[0].mesh.indices[index_offset + v];
+            IndexKey key = { idx.vertex_index, idx.normal_index, idx.texcoord_index };
+            if (speedUp.find(key) != speedUp.end()) {
+                indices.push_back(speedUp[key]);
+                continue;
             }
-            iss.get(trash).get(trash);
-            std::string segment, number;
-            std::vector<std::string> vStr;
-            while (std::getline(iss, segment, ' ')) {
-                if (speedUp.find(segment) != speedUp.end()) {
-                    indices.push_back(speedUp[segment]);
-                    continue;
-                }
-                std::istringstream isg(segment);
-                int i = 0;
-                while (std::getline(isg, number, '/')) {
-                    if (number.size() > 0) {
-                        int index = atoi(number.c_str())-1;
-                        if (i == 0) {
-                            auto &value = raw_v.at(index);
-                            std::copy(value.cbegin(), value.cend(), std::back_inserter(vertices));
-                        } else if (i == 1) {
-                            auto &value = raw_vt.at(index);
-                            std::copy(value.cbegin(), value.cend(), std::back_inserter(vertices));
-                        } else if (i == 2) {
-                            auto &value = raw_vn.at(index);
-                            std::copy(value.cbegin(), value.cend(), std::back_inserter(vertices));
-                        } else {
-                            LOG(ERROR) << "abnormal data, segment=\"" << segment << "\", path=\""
-                                << path << "\"";
-                            exit(-1);
-                        }
-                    }
-                    ++i;
-                }
-                indices.push_back(indiceIndex);
-                speedUp[segment] = indiceIndex++;
+            if (attrib.vertices.size() > 0) {
+                tinyobj::real_t vx = attrib.vertices[3*idx.vertex_index+0];
+                tinyobj::real_t vy = attrib.vertices[3*idx.vertex_index+1];
+                tinyobj::real_t vz = attrib.vertices[3*idx.vertex_index+2];
+                vertices.insert(vertices.end(), { vx, vy, vz });
             }
+            if (attrib.texcoords.size() > 0) {
+                tinyobj::real_t tx = attrib.texcoords[2*idx.texcoord_index+0];
+                tinyobj::real_t ty = attrib.texcoords[2*idx.texcoord_index+1];
+                vertices.insert(vertices.end(), { tx, ty });
+            }
+            if (attrib.normals.size() > 0) {
+                tinyobj::real_t nx = attrib.normals[3*idx.normal_index+0];
+                tinyobj::real_t ny = attrib.normals[3*idx.normal_index+1];
+                tinyobj::real_t nz = attrib.normals[3*idx.normal_index+2];
+                vertices.insert(vertices.end(), { nx, ny, nz });
+            }
+            indices.push_back(indiceIndex);
+            speedUp[key] = indiceIndex++;
         }
+        index_offset += fv;
     }
-    LOG(INFO) << "model loaded from \"" << path <<  "\" (#v" << raw_v.size()
-        << " #vn" << raw_vn.size()  << " #vt" << raw_vt.size() << " #f" << faceCount << ")";
+    
 }
 
 }
