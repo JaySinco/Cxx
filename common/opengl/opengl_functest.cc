@@ -10,12 +10,45 @@
 
 using namespace cxx;
 
+const int gWidth = 800;
+const int gHeight = 600;
+float gCameraZ = 10.0f;
+bool gLMousePressed = false;
+double gLastMouseX = 0.0f;
+double gLastMouseY = 0.0f;
+
+Scene gScene("OpenGL_Functest");
+
 void glfw_error_callback(int error, const char* desc) {
     LOG(ERROR) << "glfw failed with code " << error << ", desc=\"" << desc << "\"";
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    gCameraZ += -1.0f * yoffset;
+}
+
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+    if (gLMousePressed) {
+        float dx = xpos - gLastMouseX;
+        float dy = ypos - gLastMouseY;
+        float dz = std::hypot(dx, dy);
+        gScene.rotateCamera(-0.5 * dz, dy, dx, 0);
+    }
+    gLastMouseX = xpos;
+    gLastMouseY = ypos;
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        switch (action) {
+        case GLFW_PRESS:
+            gLMousePressed = true;
+            break;
+        case GLFW_RELEASE:
+            gLMousePressed = false;
+            break;
+        }
+    }
 }
 
 GLFWwindow *initForWindow(int width, int height, const std::string &title) {
@@ -32,7 +65,9 @@ GLFWwindow *initForWindow(int width, int height, const std::string &title) {
 		exit(-1);
 	}
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 	// initialize OpenGL loader
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		LOG(ERROR) << "failed to initialize glad";
@@ -42,35 +77,20 @@ GLFWwindow *initForWindow(int width, int height, const std::string &title) {
 }
 
 void loadResource(std::shared_ptr<Repository> repo) {
-    std::vector<float> vertices {
-        // positions          // colors           // texture coords
-         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
-    };
-    std::vector<unsigned> indices {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
     repo->addShader("shader", RESOURCE("shaders\\standard.vs"), RESOURCE("shaders\\standard.fs"));
-    const std::vector<Model::VERTEX_ATTR> attr = { Model::POS, Model::COLOR, Model::TXR };
-    repo->addModel("two triangle", vertices, indices, attr);
-    repo->addTexture("container", RESOURCE("textures\\container.jpg"));
-    repo->addTexture("awesomeface", RESOURCE("textures\\awesomeface.jpg"), true);
+    repo->addModel("buddha_model", RESOURCE("models\\buddha.obj"));
+    repo->addTexture("buddha_texture", RESOURCE("textures\\buddha.jpg"));
 }
 
 void setupScene(Scene &scene) {
     auto repo = std::make_shared<Repository>();
     loadResource(repo);
     scene.select(repo);
-    scene.setCamera(45.0f, 800/ 600, 0.1f, 100.0f);
-    scene.moveCameraTo(0.0f, 0.0f, 3.0f);
-    auto rect = scene.newItem("rect");
-    rect->load(Object::SHADER, "shader");
-    rect->load(Object::MODEL, "two triangle");
-    rect->load(Object::TEXTURE, "container");
-    rect->load(Object::TEXTURE, "awesomeface");
+    scene.setCamera(45.0f, (float)gWidth/gHeight, 0.1f, 100.0f);
+    auto buddha = scene.newItem("buddha");
+    buddha->load(Object::SHADER, "shader");
+    buddha->load(Object::MODEL, "buddha_model");
+    buddha->load(Object::TEXTURE, "buddha_texture");
 }
 
 int main(int argc, char *argv[])
@@ -78,26 +98,17 @@ int main(int argc, char *argv[])
     google::InitGoogleLogging(argv[0]);
     FLAGS_logtostderr = 1;
     FLAGS_minloglevel = 0;
-
-    GLFWwindow* window = initForWindow(800, 600, "OpenGL_Functest");
-
-    Scene scene("test");
-    setupScene(scene);
-
-    auto start = std::chrono::high_resolution_clock::now();
+    GLFWwindow* window = initForWindow(gWidth, gHeight, "OpenGL_Functest");
+    glEnable(GL_DEPTH_TEST);
+    setupScene(gScene);
     while (!glfwWindowShouldClose(window)) {
-
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        scene.render();
-
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        gScene.moveCameraTo(0.0f, 0.0f, gCameraZ);
+        gScene.render();
         glfwSwapBuffers(window);
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> elapsed = end - start;
-        (elapsed.count() < 50) ? glfwPollEvents() : glfwWaitEvents();
+        glfwPollEvents();
     }
-
     glfwTerminate();
     return 0;
 }

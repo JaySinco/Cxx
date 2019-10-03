@@ -13,6 +13,7 @@ public:
         const std::vector<float> &vertices, 
         const std::vector<unsigned> &indices,
         const std::vector<VERTEX_ATTR> &attr);
+    Model(const std::string &name, const std::string &path);
     Model(const Model&) = delete;
     ~Model();
     void draw() const;
@@ -21,6 +22,11 @@ private:
         const std::vector<float> &vertices,
         const std::vector<unsigned> &indices,
         const std::vector<VERTEX_ATTR> &attr);
+    void readObjFile(
+        const std::string &path, 
+        std::vector<float> &vertices,
+        std::vector<unsigned> &indices,
+        std::vector<VERTEX_ATTR> &attr);
     unsigned VAO, VBO, EBO;
     unsigned indices_count;
     std::string id;

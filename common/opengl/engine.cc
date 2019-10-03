@@ -26,9 +26,9 @@ void Object::moveTo(float dx, float dy, float dz) {
     xform_model_translate = glm::translate(glm::mat4(1.0f), glm::vec3(dx, dy, dz));
 }
 
-void Object::rotateTo(float degree, float axis_x, float axis_y, float axis_z) {
+void Object::rotate(float degree, float axis_x, float axis_y, float axis_z) {
     xform_model_rotate = glm::rotate(
-        glm::mat4(1.0f), 
+        xform_model_rotate, 
         glm::radians(degree),
         glm::vec3(axis_x, axis_y, axis_z));
 }
@@ -82,9 +82,9 @@ void Scene::moveCameraTo(float dx, float dy, float dz) {
     xform_view_translate = glm::translate(glm::mat4(1.0f), glm::vec3(-dx, -dy, -dz)); 
 }
 
-void Scene::rotateCameraTo(float degree, float axis_x, float axis_y, float axis_z) {
+void Scene::rotateCamera(float degree, float axis_x, float axis_y, float axis_z) {
     xform_view_rotate = glm::rotate(
-        glm::mat4(1.0f),
+        xform_view_rotate,
         glm::radians(-1 * degree),
         glm::vec3(axis_x, axis_y, axis_z));
 }

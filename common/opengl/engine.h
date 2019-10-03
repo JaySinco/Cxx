@@ -40,7 +40,7 @@ public:
     void load(PROPERTY property, const std::string &name);
     void resetPosition();
     void moveTo(float dx, float dy, float dz);
-    void rotateTo(float degree, float axis_x, float axis_y, float axis_z);
+    void rotate(float degree, float axis_x, float axis_y, float axis_z);
 private:
     glm::mat4 xform_model_translate = glm::mat4(1.0f);
     glm::mat4 xform_model_rotate= glm::mat4(1.0f);
@@ -61,7 +61,7 @@ public:
     void select(std::shared_ptr<Repository> repo);
     void setCamera(float fov_in_degree, float aspect, float near, float far);
     void moveCameraTo(float dx, float dy, float dz);
-    void rotateCameraTo(float degree, float axis_x, float axis_y, float axis_z);
+    void rotateCamera(float degree, float axis_x, float axis_y, float axis_z);
     void render();
 private:
     void checkItemNotExist(const std::string &name) const;
