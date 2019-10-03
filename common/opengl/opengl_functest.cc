@@ -10,14 +10,14 @@
 
 using namespace cxx;
 
+Scene *gScene;
 const int gWidth = 800;
 const int gHeight = 600;
-float gCameraZ = 10.0f;
+const float initCameraZ = 25.0f;
+float gCameraZ = initCameraZ;
 bool gLMousePressed = false;
 double gLastMouseX = 0.0f;
 double gLastMouseY = 0.0f;
-
-Scene gScene("OpenGL_Functest");
 
 void glfw_error_callback(int error, const char* desc) {
     LOG(ERROR) << "glfw failed with code " << error << ", desc=\"" << desc << "\"";
@@ -32,7 +32,7 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
         float dx = xpos - gLastMouseX;
         float dy = ypos - gLastMouseY;
         float dz = std::hypot(dx, dy);
-        gScene.rotateCamera(-0.5 * dz, dy, dx, 0);
+        gScene->rotateCamera(-0.15 * dz, dy, dx, 0);
     }
     gLastMouseX = xpos;
     gLastMouseY = ypos;
@@ -46,6 +46,14 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             break;
         case GLFW_RELEASE:
             gLMousePressed = false;
+            break;
+        }
+    }
+    if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+        switch (action) {
+        case GLFW_PRESS:
+            gScene->resetCamera();
+            gCameraZ = initCameraZ;
             break;
         }
     }
@@ -76,19 +84,19 @@ GLFWwindow *initForWindow(int width, int height, const std::string &title) {
     return window;
 }
 
-void loadResource(std::shared_ptr<Repository> repo) {
-    repo->addShader("shader", RESOURCE("shaders\\standard.vs"), RESOURCE("shaders\\standard.fs"));
+void load(std::shared_ptr<Repository> repo) {
+    repo->addShader("std_shader", RESOURCE("shaders\\standard.vs"), RESOURCE("shaders\\standard.fs"));
     repo->addModel("buddha_model", RESOURCE("models\\buddha.obj"));
     repo->addTexture("buddha_texture", RESOURCE("textures\\buddha.jpg"));
 }
 
-void setupScene(Scene &scene) {
+void setup(Scene &scene) {
     auto repo = std::make_shared<Repository>();
-    loadResource(repo);
+    load(repo);
     scene.select(repo);
     scene.setCamera(45.0f, (float)gWidth/gHeight, 0.1f, 100.0f);
     auto buddha = scene.newItem("buddha");
-    buddha->load(Object::SHADER, "shader");
+    buddha->load(Object::SHADER, "std_shader");
     buddha->load(Object::MODEL, "buddha_model");
     buddha->load(Object::TEXTURE, "buddha_texture");
 }
@@ -100,15 +108,17 @@ int main(int argc, char *argv[])
     FLAGS_minloglevel = 0;
     GLFWwindow* window = initForWindow(gWidth, gHeight, "OpenGL_Functest");
     glEnable(GL_DEPTH_TEST);
-    setupScene(gScene);
+    gScene = new Scene("OpenGL_Functest");
+    setup(*gScene);
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        gScene.moveCameraTo(0.0f, 0.0f, gCameraZ);
-        gScene.render();
+        gScene->moveCameraTo(0.0f, 0.0f, gCameraZ);
+        gScene->render();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+    delete gScene;
     glfwTerminate();
     return 0;
 }

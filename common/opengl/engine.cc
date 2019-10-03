@@ -17,7 +17,7 @@ void Object::load(PROPERTY property, const std::string &name) {
     }
 }
 
- void Object::resetPosition() {
+ void Object::reset() {
     xform_model_translate = glm::mat4(1.0f);
     xform_model_rotate= glm::mat4(1.0f);
  }
@@ -87,6 +87,11 @@ void Scene::rotateCamera(float degree, float axis_x, float axis_y, float axis_z)
         xform_view_rotate,
         glm::radians(-1 * degree),
         glm::vec3(axis_x, axis_y, axis_z));
+}
+
+void Scene::resetCamera() {
+    xform_view_translate = glm::mat4(1.0f);
+    xform_view_rotate = glm::mat4(1.0f);
 }
 
 void Scene::render() {

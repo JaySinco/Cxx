@@ -19,7 +19,7 @@ Model::Model(
     load(vertices, indices, attr);
 }
 
-Model::Model(const std::string &name, const std::string &path) {
+Model::Model(const std::string &name, const std::string &path): id(name) {
     std::string prefix = path.substr(path.rfind("."));
     std::vector<float> vertices;
     std::vector<unsigned> indices;

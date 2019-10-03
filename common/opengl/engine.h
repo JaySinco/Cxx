@@ -38,7 +38,7 @@ public:
     enum PROPERTY { SHADER, MODEL, TEXTURE };
     Object(const std::string &name);
     void load(PROPERTY property, const std::string &name);
-    void resetPosition();
+    void reset();
     void moveTo(float dx, float dy, float dz);
     void rotate(float degree, float axis_x, float axis_y, float axis_z);
 private:
@@ -62,6 +62,7 @@ public:
     void setCamera(float fov_in_degree, float aspect, float near, float far);
     void moveCameraTo(float dx, float dy, float dz);
     void rotateCamera(float degree, float axis_x, float axis_y, float axis_z);
+    void resetCamera();
     void render();
 private:
     void checkItemNotExist(const std::string &name) const;
