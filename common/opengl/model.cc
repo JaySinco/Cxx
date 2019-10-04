@@ -47,6 +47,10 @@ void Model::draw() const {
     glDrawElements(GL_TRIANGLES, indices_count, GL_UNSIGNED_INT, 0);
 }
 
+Cuboid Model::getBoundCuboid() const {
+    return bound_cuboid;
+}
+
 void Model::load(
         const std::vector<float> &vertices,
         const std::vector<unsigned> &indices,
@@ -124,6 +128,12 @@ void Model::readObjFile(
                     tinyobj::real_t vx = attrib.vertices[3*idx.vertex_index+0];
                     tinyobj::real_t vy = attrib.vertices[3*idx.vertex_index+1];
                     tinyobj::real_t vz = attrib.vertices[3*idx.vertex_index+2];
+                    bound_cuboid.lowX = std::min(bound_cuboid.lowX, vx);
+                    bound_cuboid.maxX = std::max(bound_cuboid.maxX, vx);
+                    bound_cuboid.lowY = std::min(bound_cuboid.lowY, vy);
+                    bound_cuboid.maxY = std::max(bound_cuboid.maxY, vy);
+                    bound_cuboid.lowZ = std::min(bound_cuboid.lowZ, vz);
+                    bound_cuboid.maxZ = std::max(bound_cuboid.maxZ, vz);
                     vertices.insert(vertices.end(), { vx, vy, vz });
                 }
                 if (attrib.texcoords.size() > 0) {

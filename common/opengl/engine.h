@@ -64,6 +64,7 @@ public:
     void rotateCamera(float degree, float axis_x, float axis_y, float axis_z);
     void resetCamera();
     void render();
+    Cuboid getBoundCuboid() const;
 private:
     void checkItemNotExist(const std::string &name) const;
     std::map<std::string, std::shared_ptr<Object>> item_map;

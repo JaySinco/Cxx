@@ -2,6 +2,7 @@
 #define GOOGLE_GLOG_DLL_DECL
 #include <glog/logging.h>
 #include <glad/glad.h>
+#include <algorithm>
 #include <numeric>
 #include "engine.h"
 
@@ -92,6 +93,24 @@ void Scene::rotateCamera(float degree, float axis_x, float axis_y, float axis_z)
 void Scene::resetCamera() {
     xform_view_translate = glm::mat4(1.0f);
     xform_view_rotate = glm::mat4(1.0f);
+}
+
+Cuboid Scene::getBoundCuboid() const {
+    Cuboid bounded;
+    for (const auto &item_pair: item_map) {
+        auto item = item_pair.second;
+        auto cuboid = repository->models.at(item->model_id)->getBoundCuboid();
+        bounded.lowX = std::min(bounded.lowX, cuboid.lowX);
+        bounded.maxX = std::max(bounded.maxX, cuboid.maxX);
+        bounded.lowY = std::min(bounded.lowY, cuboid.lowY);
+        bounded.maxY = std::max(bounded.maxY, cuboid.maxY);
+        bounded.lowZ = std::min(bounded.lowZ, cuboid.lowZ);
+        bounded.maxZ = std::max(bounded.maxZ, cuboid.maxZ);
+    }
+    LOG(INFO) << "scene(id=\"" << id << "\") bounded rect => (x: "
+        << bounded.lowX << "->" << bounded.maxX << ", y: " << bounded.lowY << "->"
+        << bounded.maxY << ", z: " << bounded.lowZ << "->" << bounded.maxZ << ")";
+    return bounded;
 }
 
 void Scene::render() {

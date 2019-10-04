@@ -13,8 +13,10 @@ using namespace cxx;
 Scene *gScene;
 const int gWidth = 800;
 const int gHeight = 600;
-const float initCameraZ = 1.0f;
-float gCameraZ = initCameraZ;
+float initCameraX = 0.0f;
+float initCameraY = 0.0f;
+float initCameraZ = 0.0f;
+float gCameraZ = 0.0f;
 float gCameraMoveSpeed = 1.0f;
 bool gLMousePressed = false;
 double gLastMouseX = 0.0;
@@ -39,18 +41,16 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
     gLastMouseY = ypos;
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_X) {
-        switch (action) {
-        case GLFW_PRESS:
-            gCameraMoveSpeed = 0.1f;
-            break;
-        case GLFW_RELEASE:
-            gCameraMoveSpeed = 1.0f;
-            break;
-        }
-    }
-}
+// void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+//     if (key == GLFW_KEY_X) {
+//         switch (action) {
+//         case GLFW_PRESS:
+//             break;
+//         case GLFW_RELEASE:
+//             break;
+//         }
+//     }
+// }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT) {
@@ -87,7 +87,7 @@ GLFWwindow *initForWindow(int width, int height, const std::string &title) {
 		exit(-1);
 	}
     glfwMakeContextCurrent(window);
-    glfwSetKeyCallback(window, key_callback);
+    // glfwSetKeyCallback(window, key_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetScrollCallback(window, scroll_callback);
@@ -100,7 +100,7 @@ GLFWwindow *initForWindow(int width, int height, const std::string &title) {
 }
 
 void load(std::shared_ptr<Repository> repo, const std::string &target) {
-    repo->addShader("shader", RESOURCE("shaders\\standard.vs"), RESOURCE("shaders\\standard.fs"));
+    repo->addShader("shader", RESOURCE("shaders\\universe.vs"), RESOURCE("shaders\\universe.fs"));
     repo->addModel("model", RESOURCE("models\\"+target+".obj"));
     repo->addTexture("texture", RESOURCE("textures\\"+target+".jpg"));
 }
@@ -109,11 +109,19 @@ void setup(Scene &scene, const std::string &target) {
     auto repo = std::make_shared<Repository>();
     load(repo, target);
     scene.select(repo);
-    scene.setCamera(45.0f, (float)gWidth/gHeight, 0.1f, 100.0f);
     auto item = scene.newItem("item");
     item->load(Object::SHADER, "shader");
     item->load(Object::MODEL, "model");
     item->load(Object::TEXTURE, "texture");
+    auto cube = scene.getBoundCuboid();
+    float dx = cube.maxX-cube.lowX, dy = cube.maxY-cube.lowY, dz = cube.maxZ-cube.lowZ;
+    float dxy = std::hypot(dx, dy);
+    initCameraX = (cube.maxX+cube.lowX)/2;
+    initCameraY = (cube.maxY+cube.lowY)/2;
+    initCameraZ = cube.maxZ + dxy * 0.8f;
+    gCameraZ = initCameraZ;
+    gCameraMoveSpeed = std::hypot(dz, dxy) * 0.1f;
+    scene.setCamera(45.0f, (float)gWidth/gHeight, gCameraMoveSpeed, gCameraMoveSpeed * 1000);
 }
 
 int main(int argc, char *argv[]) {
@@ -128,7 +136,7 @@ int main(int argc, char *argv[]) {
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        gScene->moveCameraTo(0.0f, 0.0f, gCameraZ);
+        gScene->moveCameraTo(initCameraX, initCameraY, gCameraZ);
         gScene->render();
         glfwSwapBuffers(window);
         glfwPollEvents();
