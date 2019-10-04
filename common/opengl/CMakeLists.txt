@@ -8,8 +8,12 @@ set(LIB_SRCS
     texture.cc
     model.h
     model.cc
-    engine.h
-    engine.cc
+    camera.h
+    camera.cc
+    object.h
+    object.cc
+    scenery.h
+    scenery.cc
     )
 
 add_library(${MODULE_NAME} ${LIB_SRCS})

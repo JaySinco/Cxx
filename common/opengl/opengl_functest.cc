@@ -5,12 +5,12 @@
 #include <glog/logging.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "engine.h"
+#include "scenery.h"
 #define RESOURCE(relpath) (std::string("D:\\Jaysinco\\Cxx\\common\\opengl\\resources\\")+relpath)
 
 using namespace cxx;
 
-Scene *gScene;
+Scenery *gScene;
 const int gWidth = 800;
 const int gHeight = 600;
 float initCameraX = 0.0f;
@@ -35,7 +35,7 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
         float dx = xpos - gLastMouseX;
         float dy = ypos - gLastMouseY;
         float dz = std::hypot(dx, dy);
-        gScene->rotateCamera(-0.15 * dz, dy, dx, 0);
+        gScene->getItemByName("item")->spin(0.15 * dz, dy, dx, 0);
     }
     gLastMouseX = xpos;
     gLastMouseY = ypos;
@@ -66,7 +66,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     if (button == GLFW_MOUSE_BUTTON_RIGHT) {
         switch (action) {
         case GLFW_PRESS:
-            gScene->resetCamera();
+            gScene->getItemByName("item")->reset();
             gCameraZ = initCameraZ;
             break;
         }
@@ -105,23 +105,25 @@ void load(std::shared_ptr<Repository> repo, const std::string &target) {
     repo->addTexture("texture", RESOURCE("textures\\"+target+".jpg"));
 }
 
-void setup(Scene &scene, const std::string &target) {
-    auto repo = std::make_shared<Repository>();
+void setup(Scenery &scene, const std::string &target) {
+    auto repo = std::make_shared<Repository>("repository");
     load(repo, target);
     scene.select(repo);
     auto item = scene.newItem("item");
     item->load(Object::SHADER, "shader");
     item->load(Object::MODEL, "model");
     item->load(Object::TEXTURE, "texture");
-    auto cube = scene.getBoundCuboid();
-    float dx = cube.maxX-cube.lowX, dy = cube.maxY-cube.lowY, dz = cube.maxZ-cube.lowZ;
+    auto rect = scene.getBoundRect();
+    float dx = rect.maxX-rect.lowX, dy = rect.maxY-rect.lowY, dz = rect.maxZ-rect.lowZ;
     float dxy = std::hypot(dx, dy);
-    initCameraX = (cube.maxX+cube.lowX)/2;
-    initCameraY = (cube.maxY+cube.lowY)/2;
-    initCameraZ = cube.maxZ + dxy * 0.8f;
+    initCameraX = (rect.maxX+rect.lowX)/2;
+    initCameraY = (rect.maxY+rect.lowY)/2;
+    initCameraZ = rect.maxZ + dxy * 0.8f;
     gCameraZ = initCameraZ;
     gCameraMoveSpeed = std::hypot(dz, dxy) * 0.1f;
-    scene.setCamera(45.0f, (float)gWidth/gHeight, gCameraMoveSpeed, gCameraMoveSpeed * 1000);
+    auto camera = std::make_shared<Camera>("camera", 45.0f, (float)gWidth/gHeight,
+        gCameraMoveSpeed, gCameraMoveSpeed * 1000);
+    scene.select(camera);
 }
 
 int main(int argc, char *argv[]) {
@@ -130,13 +132,13 @@ int main(int argc, char *argv[]) {
     FLAGS_minloglevel = 0;
     GLFWwindow* window = initForWindow(gWidth, gHeight, "OpenGL_Functest");
     glEnable(GL_DEPTH_TEST);
-    gScene = new Scene("OpenGL_Functest");
+    gScene = new Scenery("OpenGL_Functest");
     if (argc < 2) setup(*gScene, "porcelain");
     else setup(*gScene, argv[1]);
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        gScene->moveCameraTo(initCameraX, initCameraY, gCameraZ);
+        gScene->camera->moveTo(initCameraX, initCameraY, gCameraZ);
         gScene->render();
         glfwSwapBuffers(window);
         glfwPollEvents();

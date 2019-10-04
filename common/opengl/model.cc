@@ -47,8 +47,8 @@ void Model::draw() const {
     glDrawElements(GL_TRIANGLES, indices_count, GL_UNSIGNED_INT, 0);
 }
 
-Cuboid Model::getBoundCuboid() const {
-    return bound_cuboid;
+BoundRect Model::getBoundRect() const {
+    return bound_rect;
 }
 
 void Model::load(
@@ -101,15 +101,17 @@ void Model::readObjFile(
         exit(-1);
     }
     if (shapes.size() > 1)
-        LOG(WARNING) << "find " << shapes.size() << " shapes in model file, aggregate into one!";
+        LOG(WARNING) << "aggregate " << shapes.size() << " shapes into one";
 
     if (attrib.vertices.size() > 0)  attr.push_back(POS);
     if (attrib.texcoords.size() > 0) attr.push_back(TXR);
     if (attrib.normals.size() > 0) attr.push_back(NORM);
 
-    LOG(INFO) << "model(id=\"" << id << "\") loaded from \"" << path <<  "\" (#v" << attrib.vertices.size()
-        << " #vn" << attrib.normals.size()  << " #vt" << attrib.texcoords.size()
-        << " #f" << shapes[0].mesh.num_face_vertices.size() << ")";
+    LOG(INFO) << "model loaded, path=\"" << path << "\", stat="
+        << "(#v" << attrib.vertices.size() << " #vn" << attrib.normals.size()  
+        << " #vt" << attrib.texcoords.size()
+        << " #f" << shapes[0].mesh.num_face_vertices.size() << ")"
+        << "\", id=\"" << id << "\"";
 
     unsigned indiceIndex = 0;
     for (size_t s = 0; s < shapes.size(); s++) {
@@ -128,12 +130,12 @@ void Model::readObjFile(
                     tinyobj::real_t vx = attrib.vertices[3*idx.vertex_index+0];
                     tinyobj::real_t vy = attrib.vertices[3*idx.vertex_index+1];
                     tinyobj::real_t vz = attrib.vertices[3*idx.vertex_index+2];
-                    bound_cuboid.lowX = std::min(bound_cuboid.lowX, vx);
-                    bound_cuboid.maxX = std::max(bound_cuboid.maxX, vx);
-                    bound_cuboid.lowY = std::min(bound_cuboid.lowY, vy);
-                    bound_cuboid.maxY = std::max(bound_cuboid.maxY, vy);
-                    bound_cuboid.lowZ = std::min(bound_cuboid.lowZ, vz);
-                    bound_cuboid.maxZ = std::max(bound_cuboid.maxZ, vz);
+                    bound_rect.lowX = std::min(bound_rect.lowX, vx);
+                    bound_rect.maxX = std::max(bound_rect.maxX, vx);
+                    bound_rect.lowY = std::min(bound_rect.lowY, vy);
+                    bound_rect.maxY = std::max(bound_rect.maxY, vy);
+                    bound_rect.lowZ = std::min(bound_rect.lowZ, vz);
+                    bound_rect.maxZ = std::max(bound_rect.maxZ, vz);
                     vertices.insert(vertices.end(), { vx, vy, vz });
                 }
                 if (attrib.texcoords.size() > 0) {

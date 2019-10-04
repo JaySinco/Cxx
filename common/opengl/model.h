@@ -5,7 +5,7 @@
 
 namespace cxx {
 
-struct Cuboid {
+struct BoundRect {
     float lowX = std::numeric_limits<float>::max();
     float lowY = std::numeric_limits<float>::max();
     float lowZ = std::numeric_limits<float>::max();
@@ -26,7 +26,8 @@ public:
     Model(const Model&) = delete;
     ~Model();
     void draw() const;
-    Cuboid getBoundCuboid() const;
+    BoundRect getBoundRect() const;
+    const std::string id;
 private:
     void load(
         const std::vector<float> &vertices,
@@ -37,10 +38,9 @@ private:
         std::vector<float> &vertices,
         std::vector<unsigned> &indices,
         std::vector<VERTEX_ATTR> &attr);
-    Cuboid bound_cuboid;
+    BoundRect bound_rect;
     unsigned VAO, VBO, EBO;
     unsigned indices_count;
-    std::string id;
 };
 
 }

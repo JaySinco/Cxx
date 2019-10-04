@@ -10,9 +10,9 @@ public:
     Texture(const Texture&) = delete;
     ~Texture();
     void use(unsigned index = 0) const;
+    const std::string id;
 private:
     unsigned texture;
-    std::string id;
 };
 
 }
