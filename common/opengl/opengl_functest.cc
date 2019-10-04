@@ -6,25 +6,26 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "engine.h"
-#define RESOURCE(relpath) ("D:\\Jaysinco\\Cxx\\common\\opengl\\resources\\" relpath)
+#define RESOURCE(relpath) (std::string("D:\\Jaysinco\\Cxx\\common\\opengl\\resources\\")+relpath)
 
 using namespace cxx;
 
 Scene *gScene;
 const int gWidth = 800;
 const int gHeight = 600;
-const float initCameraZ = 25.0f;
+const float initCameraZ = 1.0f;
 float gCameraZ = initCameraZ;
+float gCameraMoveSpeed = 1.0f;
 bool gLMousePressed = false;
-double gLastMouseX = 0.0f;
-double gLastMouseY = 0.0f;
+double gLastMouseX = 0.0;
+double gLastMouseY = 0.0;
 
 void glfw_error_callback(int error, const char* desc) {
     LOG(ERROR) << "glfw failed with code " << error << ", desc=\"" << desc << "\"";
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    gCameraZ += -1.0f * yoffset;
+    gCameraZ += -1 * gCameraMoveSpeed * yoffset;
 }
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
@@ -36,6 +37,19 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
     }
     gLastMouseX = xpos;
     gLastMouseY = ypos;
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_X) {
+        switch (action) {
+        case GLFW_PRESS:
+            gCameraMoveSpeed = 0.1f;
+            break;
+        case GLFW_RELEASE:
+            gCameraMoveSpeed = 1.0f;
+            break;
+        }
+    }
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
@@ -73,6 +87,7 @@ GLFWwindow *initForWindow(int width, int height, const std::string &title) {
 		exit(-1);
 	}
     glfwMakeContextCurrent(window);
+    glfwSetKeyCallback(window, key_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetScrollCallback(window, scroll_callback);
@@ -84,32 +99,32 @@ GLFWwindow *initForWindow(int width, int height, const std::string &title) {
     return window;
 }
 
-void load(std::shared_ptr<Repository> repo) {
-    repo->addShader("std_shader", RESOURCE("shaders\\standard.vs"), RESOURCE("shaders\\standard.fs"));
-    repo->addModel("buddha_model", RESOURCE("models\\buddha.obj"));
-    repo->addTexture("buddha_texture", RESOURCE("textures\\buddha.jpg"));
+void load(std::shared_ptr<Repository> repo, const std::string &target) {
+    repo->addShader("shader", RESOURCE("shaders\\standard.vs"), RESOURCE("shaders\\standard.fs"));
+    repo->addModel("model", RESOURCE("models\\"+target+".obj"));
+    repo->addTexture("texture", RESOURCE("textures\\"+target+".jpg"));
 }
 
-void setup(Scene &scene) {
+void setup(Scene &scene, const std::string &target) {
     auto repo = std::make_shared<Repository>();
-    load(repo);
+    load(repo, target);
     scene.select(repo);
     scene.setCamera(45.0f, (float)gWidth/gHeight, 0.1f, 100.0f);
-    auto buddha = scene.newItem("buddha");
-    buddha->load(Object::SHADER, "std_shader");
-    buddha->load(Object::MODEL, "buddha_model");
-    buddha->load(Object::TEXTURE, "buddha_texture");
+    auto item = scene.newItem("item");
+    item->load(Object::SHADER, "shader");
+    item->load(Object::MODEL, "model");
+    item->load(Object::TEXTURE, "texture");
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     google::InitGoogleLogging(argv[0]);
     FLAGS_logtostderr = 1;
     FLAGS_minloglevel = 0;
     GLFWwindow* window = initForWindow(gWidth, gHeight, "OpenGL_Functest");
     glEnable(GL_DEPTH_TEST);
     gScene = new Scene("OpenGL_Functest");
-    setup(*gScene);
+    if (argc < 2) setup(*gScene, "porcelain");
+    else setup(*gScene, argv[1]);
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

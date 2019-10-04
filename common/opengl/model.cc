@@ -97,8 +97,7 @@ void Model::readObjFile(
         exit(-1);
     }
     if (shapes.size() > 1)
-        LOG(WARNING) << "find " << shapes.size() 
-            << " shapes in .obj model, load only first one";
+        LOG(WARNING) << "find " << shapes.size() << " shapes in model file, aggregate into one!";
 
     if (attrib.vertices.size() > 0)  attr.push_back(POS);
     if (attrib.texcoords.size() > 0) attr.push_back(TXR);
@@ -109,40 +108,41 @@ void Model::readObjFile(
         << " #f" << shapes[0].mesh.num_face_vertices.size() << ")";
 
     unsigned indiceIndex = 0;
-    std::map<IndexKey, unsigned> speedUp;
-    size_t index_offset = 0;
-    for (size_t f = 0; f < shapes[0].mesh.num_face_vertices.size(); f++) {
-        int fv = shapes[0].mesh.num_face_vertices[f];
-        for (size_t v = 0; v < fv; v++) {
-            tinyobj::index_t idx = shapes[0].mesh.indices[index_offset + v];
-            IndexKey key = { idx.vertex_index, idx.normal_index, idx.texcoord_index };
-            if (speedUp.find(key) != speedUp.end()) {
-                indices.push_back(speedUp[key]);
-                continue;
+    for (size_t s = 0; s < shapes.size(); s++) {
+        std::map<IndexKey, unsigned> speedUp;
+        size_t index_offset = 0;
+        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
+            int fv = shapes[s].mesh.num_face_vertices[f];
+            for (size_t v = 0; v < fv; v++) {
+                tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+                IndexKey key = { idx.vertex_index, idx.normal_index, idx.texcoord_index };
+                if (speedUp.find(key) != speedUp.end()) {
+                    indices.push_back(speedUp[key]);
+                    continue;
+                }
+                if (attrib.vertices.size() > 0) {
+                    tinyobj::real_t vx = attrib.vertices[3*idx.vertex_index+0];
+                    tinyobj::real_t vy = attrib.vertices[3*idx.vertex_index+1];
+                    tinyobj::real_t vz = attrib.vertices[3*idx.vertex_index+2];
+                    vertices.insert(vertices.end(), { vx, vy, vz });
+                }
+                if (attrib.texcoords.size() > 0) {
+                    tinyobj::real_t tx = attrib.texcoords[2*idx.texcoord_index+0];
+                    tinyobj::real_t ty = attrib.texcoords[2*idx.texcoord_index+1];
+                    vertices.insert(vertices.end(), { tx, ty });
+                }
+                if (attrib.normals.size() > 0) {
+                    tinyobj::real_t nx = attrib.normals[3*idx.normal_index+0];
+                    tinyobj::real_t ny = attrib.normals[3*idx.normal_index+1];
+                    tinyobj::real_t nz = attrib.normals[3*idx.normal_index+2];
+                    vertices.insert(vertices.end(), { nx, ny, nz });
+                }
+                indices.push_back(indiceIndex);
+                speedUp[key] = indiceIndex++;
             }
-            if (attrib.vertices.size() > 0) {
-                tinyobj::real_t vx = attrib.vertices[3*idx.vertex_index+0];
-                tinyobj::real_t vy = attrib.vertices[3*idx.vertex_index+1];
-                tinyobj::real_t vz = attrib.vertices[3*idx.vertex_index+2];
-                vertices.insert(vertices.end(), { vx, vy, vz });
-            }
-            if (attrib.texcoords.size() > 0) {
-                tinyobj::real_t tx = attrib.texcoords[2*idx.texcoord_index+0];
-                tinyobj::real_t ty = attrib.texcoords[2*idx.texcoord_index+1];
-                vertices.insert(vertices.end(), { tx, ty });
-            }
-            if (attrib.normals.size() > 0) {
-                tinyobj::real_t nx = attrib.normals[3*idx.normal_index+0];
-                tinyobj::real_t ny = attrib.normals[3*idx.normal_index+1];
-                tinyobj::real_t nz = attrib.normals[3*idx.normal_index+2];
-                vertices.insert(vertices.end(), { nx, ny, nz });
-            }
-            indices.push_back(indiceIndex);
-            speedUp[key] = indiceIndex++;
+            index_offset += fv;
         }
-        index_offset += fv;
     }
-    
 }
 
 }
