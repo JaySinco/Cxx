@@ -4,6 +4,8 @@
 
 namespace cxx {
 
+namespace gl {
+
 class Texture {
 public:
     Texture(const std::string &name, const std::string &path, bool flip_y_aixs = true);
@@ -15,4 +17,6 @@ private:
     unsigned texture;
 };
 
-}
+} // namespace gl
+
+} // namespace cxx

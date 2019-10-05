@@ -8,7 +8,7 @@
 #include "scenery.h"
 #define RESOURCE(relpath) (std::string("D:\\Jaysinco\\Cxx\\common\\opengl\\resources\\")+relpath)
 
-using namespace cxx;
+using namespace cxx::gl;
 
 Scenery *gScene;
 const int gWidth = 800;
@@ -35,7 +35,7 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
         float dx = xpos - gLastMouseX;
         float dy = ypos - gLastMouseY;
         float dz = std::hypot(dx, dy);
-        gScene->getItemByName("item")->spin(0.15 * dz, dy, dx, 0);
+        gScene->getObjectByName("object")->spin(0.15 * dz, dy, dx, 0);
     }
     gLastMouseX = xpos;
     gLastMouseY = ypos;
@@ -66,7 +66,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     if (button == GLFW_MOUSE_BUTTON_RIGHT) {
         switch (action) {
         case GLFW_PRESS:
-            gScene->getItemByName("item")->reset();
+            gScene->getObjectByName("object")->reset();
             gCameraZ = initCameraZ;
             break;
         }
@@ -99,31 +99,37 @@ GLFWwindow *initForWindow(int width, int height, const std::string &title) {
     return window;
 }
 
-void load(std::shared_ptr<Repository> repo, const std::string &target) {
+void setup(Scenery &scene, const std::string &target) {
+    // storeage
+    auto repo = scene.newStorage("storage");
     repo->addShader("shader", RESOURCE("shaders\\universe.vs"), RESOURCE("shaders\\universe.fs"));
     repo->addModel("model", RESOURCE("models\\"+target+".obj"));
     repo->addTexture("texture", RESOURCE("textures\\"+target+".jpg"));
-}
-
-void setup(Scenery &scene, const std::string &target) {
-    auto repo = std::make_shared<Repository>("repository");
-    load(repo, target);
-    scene.select(repo);
-    auto item = scene.newItem("item");
-    item->load(Object::SHADER, "shader");
-    item->load(Object::MODEL, "model");
-    item->load(Object::TEXTURE, "texture");
+    repo->addMaterial("material", std::string("texture"), 1.0f, 32.0f);
+    // object
+    auto object = scene.putObject("object");
+    object->load(Object::SHADER, "shader");
+    object->load(Object::MODEL, "model");
+    object->load(Object::MATERIAL, "material");
+    // camera
     auto rect = scene.getBoundRect();
-    float dx = rect.maxX-rect.lowX, dy = rect.maxY-rect.lowY, dz = rect.maxZ-rect.lowZ;
+    float dx = rect.maxX-rect.lowX;
+    float dy = rect.maxY-rect.lowY;
+    float dz = rect.maxZ-rect.lowZ;
     float dxy = std::hypot(dx, dy);
     initCameraX = (rect.maxX+rect.lowX)/2;
     initCameraY = (rect.maxY+rect.lowY)/2;
     initCameraZ = rect.maxZ + dxy * 0.8f;
     gCameraZ = initCameraZ;
     gCameraMoveSpeed = std::hypot(dz, dxy) * 0.1f;
-    auto camera = std::make_shared<Camera>("camera", 45.0f, (float)gWidth/gHeight,
+    scene.putCamera("camera", 45.0f, (float)gWidth/gHeight,
         gCameraMoveSpeed, gCameraMoveSpeed * 1000);
-    scene.select(camera);
+    // light
+    float lightX = rect.lowX - dx;
+    float lightY = rect.maxY + dy;
+    float lightZ = (rect.maxZ+rect.lowZ)/2;
+    scene.putLight("light", glm::vec3(lightX, lightY, lightZ),
+        glm::vec3(1.0f, 1.0f, 1.0f));
 }
 
 int main(int argc, char *argv[]) {
@@ -132,11 +138,12 @@ int main(int argc, char *argv[]) {
     FLAGS_minloglevel = 0;
     GLFWwindow* window = initForWindow(gWidth, gHeight, "OpenGL_Functest");
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     gScene = new Scenery("OpenGL_Functest");
     if (argc < 2) setup(*gScene, "porcelain");
     else setup(*gScene, argv[1]);
     while (!glfwWindowShouldClose(window)) {
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         gScene->camera->moveTo(initCameraX, initCameraY, gCameraZ);
         gScene->render();

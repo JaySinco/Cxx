@@ -5,11 +5,13 @@
 #include "object.h"
 
 namespace cxx {
+
+namespace gl {
     
 Object::Object(const std::string &name): id(name) {}
 
 Object::Object(const std::string &name, const std::shared_ptr<Object> &cp)
-    : id(name), shader_id(cp->shader_id), model_id(cp->shader_id), textures_id(cp->textures_id) {}
+    : id(name), shader_id(cp->shader_id), model_id(cp->shader_id), material_id(cp->material_id) {}
 
 Object::~Object() {
     LOG(INFO) << "delete object, id=\"" << id << "\"";
@@ -19,7 +21,7 @@ void Object::load(PROPERTY property, const std::string &name) {
     switch(property) {
         case MODEL: model_id = name; break;
         case SHADER: shader_id = name; break;
-        case TEXTURE: textures_id.push_back(name); break;
+        case MATERIAL: material_id = name; break;
     }
 }
 
@@ -54,4 +56,6 @@ glm::mat4 Object::getModelMatrix() {
     return xform_model_translate * xform_model_rotate;
 }
 
-}
+} // namespace gl
+
+} // namespace cxx

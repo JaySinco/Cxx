@@ -5,6 +5,8 @@
 
 namespace cxx {
 
+namespace gl {
+
 struct BoundRect {
     float lowX = std::numeric_limits<float>::max();
     float lowY = std::numeric_limits<float>::max();
@@ -43,4 +45,6 @@ private:
     unsigned indices_count;
 };
 
-}
+} // namespace gl
+
+} // namespace cxx

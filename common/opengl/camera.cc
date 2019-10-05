@@ -6,6 +6,8 @@
 
 namespace cxx {
 
+namespace gl {
+
 Camera::Camera(const std::string &name, float fov_in_degree,
         float aspect, float near, float far): id(name) {
     projectionVec = glm::perspective(
@@ -75,4 +77,6 @@ void Camera::updateVec() {
     upVec = glm::normalize(glm::cross(rightVec, frontVec));
 }
 
-}
+} // namespace gl
+
+} // namespace cxx

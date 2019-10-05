@@ -13,6 +13,8 @@
 
 namespace cxx {
 
+namespace gl {
+
 Model::Model(
         const std::string &name,
         const std::vector<float> &vertices, 
@@ -157,4 +159,6 @@ void Model::readObjFile(
     }
 }
 
-}
+} // namespace gl
+
+} // namespace cxx

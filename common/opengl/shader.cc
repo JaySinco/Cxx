@@ -9,6 +9,8 @@
 
 namespace cxx {
 
+namespace gl {
+
 Shader::Shader(
         const std::string &name,
         const std::string &vsPath, 
@@ -58,6 +60,11 @@ void Shader::use() const {
     glUseProgram(program);
 }
 
+void Shader::setBool(const std::string &name, bool value) const {
+    use();
+    glUniform1i(glGetUniformLocation(program, name.c_str()), (int)value);
+}
+
 void Shader::setInt(const std::string &name, int value) const {
     use();
     glUniform1i(glGetUniformLocation(program, name.c_str()), value);
@@ -66,6 +73,11 @@ void Shader::setInt(const std::string &name, int value) const {
 void Shader::setFloat(const std::string &name, float value) const {
     use();
     glUniform1f(glGetUniformLocation(program, name.c_str()), value);
+}
+
+void Shader::setVec3(const std::string &name, const glm::vec3 &value) const {
+    use();
+    glUniform3fv(glGetUniformLocation(program, name.c_str()), 1, glm::value_ptr(value));
 }
 
 void Shader::setMat4(const std::string &name, const glm::mat4 &value) const {
@@ -94,4 +106,6 @@ void Shader::checkError(GLuint shader, const std::string &type) const {
     }
 }
 
-}
+} // namespace gl
+
+} // namespace cxx}

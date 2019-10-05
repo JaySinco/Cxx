@@ -8,6 +8,8 @@
 
 namespace cxx {
 
+namespace gl {
+
 Texture::Texture(const std::string &name, const std::string &path, bool flip_y_aixs): id(name) {
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture); 
@@ -41,4 +43,6 @@ void Texture::use(unsigned index) const {
     glBindTexture(GL_TEXTURE_2D, texture);
 }
 
-}
+} // namespace gl
+
+} // namespace cxx

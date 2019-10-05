@@ -31,4 +31,4 @@ class WinInfoUtility {
     static double CalculateIOSpeedInPdh(const char *CounterPath);
 };
 
-}
+} // namespace cxx

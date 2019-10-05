@@ -7,6 +7,8 @@
 
 namespace cxx {
 
+namespace gl {
+
 class Camera {
 public:
     enum MOVE { FORWARD, BACKWARD, LEFT, RIGHT };
@@ -21,12 +23,12 @@ public:
     void nodTo(float degree);
     glm::mat4 getViewMatrix();
     glm::mat4 getProjectionMatrix();
+    glm::vec3 posVec = glm::vec3(0.0f, 0.0f, 0.0f);
     const std::string id;
 private:
     void updateVec();
     const glm::vec3 worldUpVec = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::mat4 projectionVec = glm::mat4(1.0f);
-    glm::vec3 posVec = glm::vec3(0.0f, 0.0f, 0.0f);
     float yawDegree = -90.0f;
     float pitchDegree = 0.0f;
     glm::vec3 frontVec;
@@ -34,4 +36,6 @@ private:
     glm::vec3 rightVec;
 };
 
-}
+} // namespace gl
+
+} // namespace cxx

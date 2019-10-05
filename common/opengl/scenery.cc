@@ -8,33 +8,23 @@
 
 namespace cxx {
 
+namespace gl {
+
 Scenery::Scenery(const std::string &name): id(name) {}
 
 Scenery::~Scenery() {
     LOG(INFO) << "delete scenery, id=\"" << id << "\"";
 }
 
-std::shared_ptr<Object> Scenery::getItemByName(const std::string &name) {
-    return item_map.at(name);
-}
-
-std::shared_ptr<Object> Scenery::operator[](const std::string &name) {
-    return getItemByName(name);
-}
-
-void Scenery::select(std::shared_ptr<Repository> repo) {
-    repository = repo;
-}
-
-void Scenery::select(std::shared_ptr<Camera> ca) {
-    camera = ca;
+std::shared_ptr<Object> Scenery::getObjectByName(const std::string &name) {
+    return object_map.at(name);
 }
 
 BoundRect Scenery::getBoundRect() const {
     BoundRect bounded;
-    for (const auto &item_pair: item_map) {
-        auto item = item_pair.second;
-        auto rect = repository->models.at(item->model_id)->getBoundRect();
+    for (const auto &object_pair: object_map) {
+        auto object = object_pair.second;
+        auto rect = storage->models.at(object->model_id)->getBoundRect();
         bounded.lowX = std::min(bounded.lowX, rect.lowX);
         bounded.maxX = std::max(bounded.maxX, rect.maxX);
         bounded.lowY = std::min(bounded.lowY, rect.lowY);
@@ -49,44 +39,42 @@ BoundRect Scenery::getBoundRect() const {
 }
 
 void Scenery::render() {
-    for (const auto &item_pair: item_map) {
-        auto item = item_pair.second;
-        
-        if (item->shader_id != "" && 
-                (last_render_shader == "" || last_render_shader != item->shader_id)) {
-            repository->shaders.at(item->shader_id)->use();
-            last_render_shader = item->shader_id;
+    for (const auto &object_pair: object_map) {
+        auto object = object_pair.second;
+        // load shader
+        if (object->shader_id != "" && 
+                (last_render_shader == "" || last_render_shader != object->shader_id)) {
+            LOG(INFO) << "using shader id=\"" << object->shader_id << "\"";
+            storage->shaders.at(object->shader_id)->use();
+            last_render_shader = object->shader_id;
         }
-        auto current_shader = repository->shaders.at(last_render_shader);
-        current_shader->setMat4("uf_xform_model", item->getModelMatrix());
+        auto current_shader = storage->shaders.at(last_render_shader);
+        current_shader->setMat4("uf_xform_model", object->getModelMatrix());
         current_shader->setMat4("uf_xform_view", camera->getViewMatrix());
         current_shader->setMat4("uf_xform_projection", camera->getProjectionMatrix());
-        
-        if (item->textures_id.size() > 0) {
-            std::string uf_text_prefix = "uf_text_";
-            if (item->textures_id.size() == 1) {
-                auto texture_id = item->textures_id.back();
-                if (last_render_texture == "" ||  last_render_shader != texture_id) {
-                    repository->textures.at(texture_id)->use();
-                    current_shader->setInt(uf_text_prefix+std::to_string(0), 0);
-                }
-            } else {
-                int i = 0;
-                for (const auto texture_id: item->textures_id) {
-                    repository->textures.at(texture_id)->use(i);
-                    current_shader->setInt(uf_text_prefix+std::to_string(i), i);
-                    ++i;
-                }
-            }
-            last_render_shader = item->textures_id.back();
+        // load material
+        if (object->material_id.size() > 0) {
+            auto material = storage->materials.at(object->material_id);
+            storage->textures.at(material->diffuse_texture_id)->use(0);
+            current_shader->setInt("uf_material.diffuse", 0);
+            current_shader->setVec3("uf_material.specular", material->specularVec);
+            current_shader->setFloat("uf_material.shininess", material->shininess);
         }
-
-        if (item->model_id == "") {
-            LOG(ERROR) << "haven't load model yet, object id=\"" << item->id << "\"";
+        // load camera && light
+        current_shader->setVec3("uf_camera_pos", camera->posVec);
+        current_shader->setVec3("uf_light.pos", light->posVec);
+        current_shader->setVec3("uf_light.ambient", light->ambientVec);
+        current_shader->setVec3("uf_light.diffuse", light->diffuseVec);
+        current_shader->setVec3("uf_light.specular", light->specularVec);
+        // load model
+        if (object->model_id == "") {
+            LOG(ERROR) << "haven't load model yet, object id=\"" << object->id << "\"";
             exit(-1);
         }
-        repository->models.at(item->model_id)->draw();
-    }   
-}
+        storage->models.at(object->model_id)->draw();
+    } 
+};
 
-}
+} // namespace gl
+
+} // namespace cxx
