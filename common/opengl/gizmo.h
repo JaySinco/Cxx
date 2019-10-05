@@ -63,23 +63,26 @@ public:
 
 class Light {
 public:
-    Light(
-        const std::string &name,
-        glm::vec3 pos, glm::vec3 color,
-        float ambient = 0.5f, float diffuse = 0.8f, float specular = 1.0f): 
-            posVec(pos),
-            ambientVec(ambient*color), 
-            diffuseVec(diffuse*color), 
-            specularVec(specular*color),
-            id(name) {};
+    enum Type { DIRECT=0, POINT=1, SPOT=2 };
+    struct Data {
+        Type all_type;
+        glm::vec3 all_ambient;
+        glm::vec3 all_diffuse;
+        glm::vec3 all_specular;
+        glm::vec3 point_spot_position;
+        glm::vec3 direct_spot_direction;
+        float point_constant;
+        float point_linear;
+        float point_quadratic;
+        float spot_innerCutOff;
+        float spot_outerCutOff;
+    };
+    Light(const std::string &name, const Data &property): data(property), id(name) {}
     Light(const Light&) = delete;
     ~Light()  {
         LOG(INFO) << "delete light, id=\"" << id << "\"";
     };
-    glm::vec3 posVec;
-    glm::vec3 ambientVec;
-    glm::vec3 diffuseVec;
-    glm::vec3 specularVec;
+    Data data;
     const std::string id;
 };
 

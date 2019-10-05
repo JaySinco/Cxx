@@ -128,8 +128,16 @@ void setup(Scenery &scene, const std::string &target) {
     float lightX = rect.lowX - dx;
     float lightY = rect.maxY + dy;
     float lightZ = (rect.maxZ+rect.lowZ)/2;
-    scene.putLight("light", glm::vec3(lightX, lightY, lightZ),
-        glm::vec3(1.0f, 1.0f, 1.0f));
+    Light::Data data;
+    data.all_type = Light::POINT;
+    data.all_ambient = glm::vec3(0.5f, 0.5f, 0.5f);
+    data.all_diffuse = glm::vec3(0.7f, 0.7f, 0.7f);
+    data.all_specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    data.point_spot_position = glm::vec3(lightX, lightY, lightZ);
+    data.point_constant = 1.0f;
+    data.point_linear = 0.09f;
+    data.point_quadratic = 0.032f;
+    scene.putLight("light", data);
 }
 
 int main(int argc, char *argv[]) {

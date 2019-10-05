@@ -62,10 +62,17 @@ void Scenery::render() {
         }
         // load camera && light
         current_shader->setVec3("uf_camera_pos", camera->posVec);
-        current_shader->setVec3("uf_light.pos", light->posVec);
-        current_shader->setVec3("uf_light.ambient", light->ambientVec);
-        current_shader->setVec3("uf_light.diffuse", light->diffuseVec);
-        current_shader->setVec3("uf_light.specular", light->specularVec);
+        current_shader->setInt("uf_light.all_type", light->data.all_type);
+        current_shader->setVec3("uf_light.all_ambient", light->data.all_ambient);
+        current_shader->setVec3("uf_light.all_diffuse", light->data.all_diffuse);
+        current_shader->setVec3("uf_light.all_specular", light->data.all_specular);
+        current_shader->setVec3("uf_light.point_spot_position", light->data.point_spot_position);
+        current_shader->setVec3("uf_light.direct_spot_direction", light->data.direct_spot_direction);
+        current_shader->setFloat("uf_light.point_constant", light->data.point_constant);
+        current_shader->setFloat("uf_light.point_linear", light->data.point_linear);
+        current_shader->setFloat("uf_light.point_quadratic", light->data.point_quadratic);
+        current_shader->setFloat("uf_light.spot_innerCutOff", light->data.spot_innerCutOff);
+        current_shader->setFloat("uf_light.spot_outerCutOff", light->data.spot_outerCutOff);
         // load model
         if (object->model_id == "") {
             LOG(ERROR) << "haven't load model yet, object id=\"" << object->id << "\"";
