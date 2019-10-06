@@ -1,7 +1,3 @@
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
-#include <glad/glad.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -12,16 +8,17 @@ namespace cxx {
 namespace gl {
 
 Shader::Shader(
-        const std::string &name,
+        const std::string &id,
         const std::string &vsPath, 
-        const std::string &fsPath): id(name) {
+        const std::string &fsPath): Base(Base::SHADER, id) {
+            
     std::ifstream vsFile(vsPath), fsFile(fsPath);
     if (!vsFile) {
-        LOG(ERROR) << "failed to load vertex shader, vsPath=\"" << vsPath << "\"";
+        LOG(ERROR) << "failed to load vertex shader, vsPath=" << QUOT(vsPath);
         exit(-1);
     }
     if (!fsFile) {
-        LOG(ERROR) << "failed to load fragment shader, fsPath=\"" << fsPath << "\"";
+        LOG(ERROR) << "failed to load fragment shader, fsPath=" << QUOT(fsPath);
         exit(-1);
     }
     // read source code
@@ -52,7 +49,6 @@ Shader::Shader(
 }
 
 Shader::~Shader() {
-    LOG(INFO) << "delete program, id=\"" << id << "\"";
     glDeleteProgram(program);
 }
 
@@ -93,14 +89,14 @@ void Shader::checkError(GLuint shader, const std::string &type) const {
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
         if (!success) {
             glGetShaderInfoLog(shader, bufSize, NULL, errorMsg);
-            LOG(ERROR) << "failed to compile " << type << ", errorMsg=\"" << errorMsg << "\"";
+            LOG(ERROR) << "failed to compile " << type << ", errorMsg=" << QUOT(errorMsg);
             exit(-1);
         }
     } else {
         glGetProgramiv(shader, GL_LINK_STATUS, &success);
         if (!success) {
             glGetProgramInfoLog(shader, bufSize, NULL, errorMsg);
-            LOG(ERROR) << "failed to link " << type << ", errorMsg=\"" << errorMsg << "\"";
+            LOG(ERROR) << "failed to link " << type << ", errorMsg=" << QUOT(errorMsg);
             exit(-1);
         }
     }

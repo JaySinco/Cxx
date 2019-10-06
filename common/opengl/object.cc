@@ -1,28 +1,28 @@
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
-#include <glad/glad.h>
 #include "object.h"
 
 namespace cxx {
 
 namespace gl {
-    
-Object::Object(const std::string &name): id(name) {}
 
-Object::Object(const std::string &name, const std::shared_ptr<Object> &cp)
-    : id(name), shader_id(cp->shader_id), model_id(cp->shader_id), material_id(cp->material_id) {}
+Object::Object(
+        const std::string &id,
+        const std::string &model_id,
+        const std::string &shader_id,
+        const std::string &material_id,
+        glm::mat4 xform_default)
+            : Base(Base::OBJECT, id), model_(model_id), shader_(shader_id), 
+                material_(material_id), xform_model_default(xform_default) {}
 
-Object::~Object() {
-    LOG(INFO) << "delete object, id=\"" << id << "\"";
+std::string Object::model() const {
+    return model_;
 }
 
-void Object::load(PROPERTY property, const std::string &name) {
-    switch(property) {
-        case MODEL: model_id = name; break;
-        case SHADER: shader_id = name; break;
-        case MATERIAL: material_id = name; break;
-    }
+std::string Object::shader() const {
+    return shader_;
+}
+
+std::string Object::material() const {
+    return material_;
 }
 
 void Object::reset() {
@@ -31,7 +31,9 @@ void Object::reset() {
  }
 
 void Object::move(float dx, float dy, float dz) {
-    xform_model_translate = glm::translate(xform_model_translate, glm::vec3(dx, dy, dz));
+    xform_model_translate = glm::translate(
+        glm::mat4(1.0f),
+        glm::vec3(dx, dy, dz)) * xform_model_translate;
 }
 
 void Object::moveTo(float x, float y, float z) {
@@ -40,9 +42,9 @@ void Object::moveTo(float x, float y, float z) {
 
 void Object::spin(float degree, float axis_x, float axis_y, float axis_z) {
     xform_model_rotate = glm::rotate(
-        xform_model_rotate, 
+        glm::mat4(1.0f), 
         glm::radians(degree),
-        glm::vec3(axis_x, axis_y, axis_z));
+        glm::vec3(axis_x, axis_y, axis_z)) * xform_model_rotate;
 }
 
 void Object::spinTo(float degree, float axis_x, float axis_y, float axis_z) {
@@ -52,8 +54,16 @@ void Object::spinTo(float degree, float axis_x, float axis_y, float axis_z) {
         glm::vec3(axis_x, axis_y, axis_z));
 }
 
-glm::mat4 Object::getModelMatrix() {
-    return xform_model_translate * xform_model_rotate;
+void Object::scale(float x, float y, float z) {
+    xform_model_scale = glm::scale(xform_model_scale, glm::vec3(x, y, z)); 
+}
+
+void Object::scaleTo(float dx, float dy, float dz) {
+    xform_model_scale = glm::scale(glm::mat4(1.0f), glm::vec3(dx, dy, dz)); 
+}
+
+glm::mat4 Object::getModelMatrix() const {
+    return xform_model_translate * xform_model_rotate * xform_model_scale * xform_model_default;
 }
 
 } // namespace gl

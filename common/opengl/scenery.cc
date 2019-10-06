@@ -1,7 +1,3 @@
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
-#include <glad/glad.h>
 #include <algorithm>
 #include <numeric>
 #include "scenery.h"
@@ -10,21 +6,26 @@ namespace cxx {
 
 namespace gl {
 
-Scenery::Scenery(const std::string &name): id(name) {}
+Scenery::Scenery(const std::string &id): Base(Base::SCENERY, id) {}
 
-Scenery::~Scenery() {
-    LOG(INFO) << "delete scenery, id=\"" << id << "\"";
+void Scenery::putObject(const std::string &id) {
+    object_set.insert(id);
 }
 
-std::shared_ptr<Object> Scenery::getObjectByName(const std::string &name) {
-    return object_map.at(name);
+void Scenery::putCamera(const std::string &id) {
+    camera_ = id;
 }
 
-BoundRect Scenery::getBoundRect() const {
+void Scenery::putLight(const std::string &id) {
+    light_ = id;
+}
+
+BoundRect Scenery::getBoundRect(const Storage &storage) const {
     BoundRect bounded;
-    for (const auto &object_pair: object_map) {
-        auto object = object_pair.second;
-        auto rect = storage->models.at(object->model_id)->getBoundRect();
+    for (const auto &object_id: object_set) {
+        auto object = storage.get<Object>(object_id);
+        auto rect = storage.get<Model>(object->model())->getBoundRect();
+        rect.applyModelMatrix(object->getModelMatrix());
         bounded.lowX = std::min(bounded.lowX, rect.lowX);
         bounded.maxX = std::max(bounded.maxX, rect.maxX);
         bounded.lowY = std::min(bounded.lowY, rect.lowY);
@@ -32,54 +33,56 @@ BoundRect Scenery::getBoundRect() const {
         bounded.lowZ = std::min(bounded.lowZ, rect.lowZ);
         bounded.maxZ = std::max(bounded.maxZ, rect.maxZ);
     }
-    LOG(INFO) << "scenery boundary acquired, rect=([" << bounded.lowX << ", " << bounded.maxX
-        << "], [" << bounded.lowY << ", " << bounded.maxY << "], [" << bounded.lowZ 
-        << ", " << bounded.maxZ << "]), id=\"" << id << "\"";
+    LOG(INFO) << *this << " boundary obtained, rect=" << bounded;
     return bounded;
 }
 
-void Scenery::render() {
-    for (const auto &object_pair: object_map) {
-        auto object = object_pair.second;
+void Scenery::render(const Storage &storage) {
+    auto camera = storage.get<Camera>(camera_);
+    auto light = storage.get<Light>(light_);
+    for (const auto &object_id: object_set) {
+        auto object = storage.get<Object>(object_id);
         // load shader
-        if (object->shader_id != "" && 
-                (last_render_shader == "" || last_render_shader != object->shader_id)) {
-            LOG(INFO) << "using shader id=\"" << object->shader_id << "\"";
-            storage->shaders.at(object->shader_id)->use();
-            last_render_shader = object->shader_id;
+        if (object->shader() != "" && 
+                (last_render_shader == "" || last_render_shader != object->shader())) {
+            auto shader = storage.get<Shader>(object->shader());
+            LOG(INFO) << "using " << *shader;
+            shader->use();
+            last_render_shader = shader->getId();
         }
-        auto current_shader = storage->shaders.at(last_render_shader);
+        auto current_shader = storage.get<Shader>(last_render_shader);
         current_shader->setMat4("uf_xform_model", object->getModelMatrix());
+        // load material
+        if (object->material() != "") {
+            auto material = storage.get<Material>(object->material());
+            storage.get<Texture>(material->diff_texture())->use(0);
+            current_shader->setInt("uf_material.diffuse", 0);
+            current_shader->setVec3("uf_material.specular", material->specular());
+            current_shader->setFloat("uf_material.shininess", material->shininess());
+        }
+        // load camera
+        current_shader->setVec3("uf_camera_pos", camera->pos());
         current_shader->setMat4("uf_xform_view", camera->getViewMatrix());
         current_shader->setMat4("uf_xform_projection", camera->getProjectionMatrix());
-        // load material
-        if (object->material_id.size() > 0) {
-            auto material = storage->materials.at(object->material_id);
-            storage->textures.at(material->diffuse_texture_id)->use(0);
-            current_shader->setInt("uf_material.diffuse", 0);
-            current_shader->setVec3("uf_material.specular", material->specularVec);
-            current_shader->setFloat("uf_material.shininess", material->shininess);
-        }
-        // load camera && light
-        current_shader->setVec3("uf_camera_pos", camera->posVec);
-        current_shader->setInt("uf_light.all_type", light->data.all_type);
-        current_shader->setVec3("uf_light.all_ambient", light->data.all_ambient);
-        current_shader->setVec3("uf_light.all_diffuse", light->data.all_diffuse);
-        current_shader->setVec3("uf_light.all_specular", light->data.all_specular);
-        current_shader->setVec3("uf_light.point_spot_position", light->data.point_spot_position);
-        current_shader->setVec3("uf_light.direct_spot_direction", light->data.direct_spot_direction);
-        current_shader->setFloat("uf_light.point_constant", light->data.point_constant);
-        current_shader->setFloat("uf_light.point_linear", light->data.point_linear);
-        current_shader->setFloat("uf_light.point_quadratic", light->data.point_quadratic);
-        current_shader->setFloat("uf_light.spot_innerCutOff", light->data.spot_innerCutOff);
-        current_shader->setFloat("uf_light.spot_outerCutOff", light->data.spot_outerCutOff);
+        // load light
+        current_shader->setInt("uf_light.all_type", light->data().all_type);
+        current_shader->setVec3("uf_light.all_ambient", light->data().all_ambient);
+        current_shader->setVec3("uf_light.all_diffuse", light->data().all_diffuse);
+        current_shader->setVec3("uf_light.all_specular", light->data().all_specular);
+        current_shader->setVec3("uf_light.point_spot_position", light->data().point_spot_position);
+        current_shader->setVec3("uf_light.direct_spot_direction", light->data().direct_spot_direction);
+        current_shader->setFloat("uf_light.point_constant", light->data().point_constant);
+        current_shader->setFloat("uf_light.point_linear", light->data().point_linear);
+        current_shader->setFloat("uf_light.point_quadratic", light->data().point_quadratic);
+        current_shader->setFloat("uf_light.spot_innerCutOff", light->data().spot_innerCutOff);
+        current_shader->setFloat("uf_light.spot_outerCutOff", light->data().spot_outerCutOff);
         // load model
-        if (object->model_id == "") {
-            LOG(ERROR) << "haven't load model yet, object id=\"" << object->id << "\"";
+        if (object->model() == "") {
+            LOG(ERROR) << object << " haven't load model yet";
             exit(-1);
         }
-        storage->models.at(object->model_id)->draw();
-    } 
+        storage.get<Model>(object->model())->draw();
+    }
 };
 
 } // namespace gl

@@ -1,12 +1,6 @@
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
-#include <glad/glad.h>
 #include <numeric>
 #include <algorithm>
-#include <array>
 #include <map>
-#include <fstream>
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 #include "model.h"
@@ -15,15 +9,36 @@ namespace cxx {
 
 namespace gl {
 
+void BoundRect::applyModelMatrix(const glm::mat4 &xform_model) {
+    glm::vec4 low(lowX, lowY, lowZ, 1.0f);
+    glm::vec4 lowXform = xform_model * low;
+    lowX = lowXform.x;
+    lowY = lowXform.y;
+    lowZ = lowXform.z;
+    glm::vec4 max(maxX, maxY, maxZ, 1.0f);
+    glm::vec4 maxXform = xform_model * max;
+    maxX = maxXform.x;
+    maxY = maxXform.y;
+    maxZ = maxXform.z;
+}
+
+std::ostream &operator<<(std::ostream &out, const BoundRect &rect) {
+    out << "([" << rect.lowX << ", " << rect.maxX
+        << "], [" << rect.lowY << ", " << rect.maxY
+        << "], ["  << rect.lowZ << ", " << rect.maxZ << "])";
+    return out;
+}
+
 Model::Model(
-        const std::string &name,
+        const std::string &id,
         const std::vector<float> &vertices, 
         const std::vector<unsigned> &indices,
-        const std::vector<VERTEX_ATTR> &attr): id(name) {
+        const std::vector<VERTEX_ATTR> &attr): Base(Base::MODEL, id) {
+
     load(vertices, indices, attr);
 }
 
-Model::Model(const std::string &name, const std::string &path): id(name) {
+Model::Model(const std::string &id, const std::string &path): Base(Base::MODEL, id) {
     std::string prefix = path.substr(path.rfind("."));
     std::vector<float> vertices;
     std::vector<unsigned> indices;
@@ -31,14 +46,13 @@ Model::Model(const std::string &name, const std::string &path): id(name) {
     if (prefix == ".obj") {
         readObjFile(path, vertices, indices, attr);
     } else {
-        LOG(ERROR) << "unsupported model file suffix name, path=\"" << path << "\"";
+        LOG(ERROR) << "unsupported model file suffix name, path=" << QUOT(path);
         exit(-1);
     }
     load(vertices, indices, attr);
 }
 
 Model::~Model() {
-    LOG(INFO) << "delete model, id=\"" << id << "\"";
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
@@ -57,6 +71,7 @@ void Model::load(
         const std::vector<float> &vertices,
         const std::vector<unsigned> &indices,
         const std::vector<VERTEX_ATTR> &attr) {
+            
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -92,14 +107,14 @@ void Model::readObjFile(
         std::vector<float> &vertices,
         std::vector<unsigned> &indices,
         std::vector<VERTEX_ATTR> &attr) {
+            
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string err;
     bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, path.c_str());
     if (!ret || shapes.size() <= 0) {
-        LOG(ERROR) << "failed to load .obj model, path=\""
-            << path << "\", err=\"" << err << "\"";
+        LOG(ERROR) << "failed to load .obj model, path=" << QUOT(path) << ", err=" << QUOT(err);
         exit(-1);
     }
     if (shapes.size() > 1)
@@ -109,11 +124,10 @@ void Model::readObjFile(
     if (attrib.texcoords.size() > 0) attr.push_back(TXR);
     if (attrib.normals.size() > 0) attr.push_back(NORM);
 
-    LOG(INFO) << "model loaded, path=\"" << path << "\", stat="
+    LOG(INFO) << *this << " loaded, path=" << QUOT(path) << ", stat="
         << "(#v" << attrib.vertices.size() << " #vn" << attrib.normals.size()  
         << " #vt" << attrib.texcoords.size()
-        << " #f" << shapes[0].mesh.num_face_vertices.size() << ")"
-        << "\", id=\"" << id << "\"";
+        << " #f" << shapes[0].mesh.num_face_vertices.size() << ")";
 
     unsigned indiceIndex = 0;
     for (size_t s = 0; s < shapes.size(); s++) {

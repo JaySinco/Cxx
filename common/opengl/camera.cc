@@ -1,22 +1,18 @@
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
-#include <glad/glad.h>
 #include "camera.h"
 
 namespace cxx {
 
 namespace gl {
 
-Camera::Camera(const std::string &name, float fov_in_degree,
-        float aspect, float near, float far): id(name) {
+Camera::Camera(
+        const std::string &id,
+        float fov_in_degree,
+        float aspect,
+        float near,
+        float far): Base(Base::CAMERA, id) {
     projectionVec = glm::perspective(
         glm::radians(fov_in_degree),
         aspect, near, far);
-}
-
-Camera::~Camera() {
-    LOG(INFO) << "delete camera, id=\"" << id << "\"";
 }
 
 void Camera::move(MOVE direction, float distance) {
@@ -63,7 +59,15 @@ glm::mat4 Camera::getViewMatrix() {
     return glm::lookAt(posVec, posVec + frontVec, upVec);
 }
 
-glm::mat4 Camera::getProjectionMatrix() {
+glm::vec3 Camera::front() const {
+    return frontVec;
+}
+
+glm::vec3 Camera::pos() const {
+    return posVec;
+}
+
+glm::mat4 Camera::getProjectionMatrix() const {
     return projectionVec;
 }
 

@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
-#include <string>
-#include <memory>
+#include "base.h"
 
 namespace cxx {
 
@@ -14,22 +13,24 @@ struct BoundRect {
     float maxX = std::numeric_limits<float>::lowest();
     float maxY = std::numeric_limits<float>::lowest();
     float maxZ = std::numeric_limits<float>::lowest();
+
+    void applyModelMatrix(const glm::mat4 &xform_model);
 };
 
-class Model {
+std::ostream &operator<<(std::ostream &out, const BoundRect &rect);
+
+class Model: public Base {
 public:
     enum VERTEX_ATTR { POS=3, COLOR=3, NORM=3, TXR=2 };
     Model(
-        const std::string &name,
+        const std::string &id,
         const std::vector<float> &vertices, 
         const std::vector<unsigned> &indices,
         const std::vector<VERTEX_ATTR> &attr);
-    Model(const std::string &name, const std::string &path);
-    Model(const Model&) = delete;
+    Model(const std::string &id, const std::string &path);
     ~Model();
     void draw() const;
     BoundRect getBoundRect() const;
-    const std::string id;
 private:
     void load(
         const std::vector<float> &vertices,

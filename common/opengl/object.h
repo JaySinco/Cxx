@@ -1,36 +1,37 @@
 #pragma once
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <vector>
-#include <map>
-#include <string>
-#include "shader.h"
-#include "texture.h"
-#include "model.h"
+#include "base.h"
 
 namespace cxx {
 
 namespace gl {
 
-class Object {
+class Object: public Base {
 public:
-    enum PROPERTY { SHADER, MODEL, MATERIAL };
-    Object(const std::string &name);
-    Object(const std::string &name, const std::shared_ptr<Object> &copy_from);
-    ~Object();
-    void load(PROPERTY property, const std::string &name);
+    Object(
+        const std::string &id,
+        const std::string &model_id,
+        const std::string &shader_id = "",
+        const std::string &material_id = "",
+        glm::mat4 xform_default = glm::mat4(1.0f));
+    std::string model() const;
+    std::string shader() const;
+    std::string material() const;
     void reset();
     void move(float dx, float dy, float dz);
     void moveTo(float x, float y, float z);
     void spin(float degree, float axis_x, float axis_y, float axis_z);
     void spinTo(float degree, float axis_x, float axis_y, float axis_z);
-    glm::mat4 getModelMatrix();
-    const std::string id;
-    std::string shader_id, model_id, material_id;
+    void scale(float x, float y, float z);
+    void scaleTo(float dx, float dy, float dz);
+    glm::mat4 getModelMatrix() const;
 private:
+    std::string model_;
+    std::string shader_;
+    std::string material_;
+    const glm::mat4 xform_model_default;
     glm::mat4 xform_model_translate = glm::mat4(1.0f);
-    glm::mat4 xform_model_rotate= glm::mat4(1.0f);
+    glm::mat4 xform_model_rotate = glm::mat4(1.0f);
+    glm::mat4 xform_model_scale = glm::mat4(1.0f);
 };
 
 } // namespace gl

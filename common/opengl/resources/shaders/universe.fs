@@ -29,12 +29,17 @@ uniform vec3 uf_camera_pos;
 // 0 - directional light
 // 1 - point light
 // 2 - spot light
+// 3 - global light
 uniform Light uf_light;
 uniform Material uf_material;
 
 void main() {
     // ambient
     vec3 ambient  = uf_light.all_ambient * vec3(texture(uf_material.diffuse, io_txr));
+    if (uf_light.all_type == 3) {
+        out_frag_color = vec4(ambient, 1.0);
+        return;
+    }
     // diffuse 
     vec3 norm = normalize(io_norm);
     vec3 light_dir = normalize(uf_light.point_spot_position - io_pos);
