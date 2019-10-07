@@ -25,6 +25,24 @@ std::string Object::material() const {
     return material_;
 }
 
+glm::mat4 Object::rotateX(float degree) {
+    return rotate(degree, 1.0f, 0.0f, 0.0f);
+}
+
+glm::mat4 Object::rotateY(float degree) {
+    return rotate(degree, 0.0f, 1.0f, 0.0f);
+}
+
+glm::mat4 Object::rotateZ(float degree) {
+    return rotate(degree, 0.0f, 0.0f, 1.0f);
+}
+
+glm::mat4 Object::rotate(float degree, float axis_x, float axis_y, float axis_z) {
+    return glm::rotate(glm::mat4(1.0f), 
+        glm::radians(degree),
+        glm::vec3(axis_x, axis_y, axis_z));
+}
+
 void Object::reset() {
     xform_model_translate = glm::mat4(1.0f);
     xform_model_rotate= glm::mat4(1.0f);
@@ -41,17 +59,11 @@ void Object::moveTo(float x, float y, float z) {
 }
 
 void Object::spin(float degree, float axis_x, float axis_y, float axis_z) {
-    xform_model_rotate = glm::rotate(
-        glm::mat4(1.0f), 
-        glm::radians(degree),
-        glm::vec3(axis_x, axis_y, axis_z)) * xform_model_rotate;
+    xform_model_rotate = rotate(degree, axis_x, axis_y, axis_z) * xform_model_rotate;
 }
 
 void Object::spinTo(float degree, float axis_x, float axis_y, float axis_z) {
-    xform_model_rotate = glm::rotate(
-        glm::mat4(1.0f), 
-        glm::radians(degree),
-        glm::vec3(axis_x, axis_y, axis_z));
+    xform_model_rotate = rotate(degree, axis_x, axis_y, axis_z);
 }
 
 void Object::scale(float x, float y, float z) {

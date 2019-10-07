@@ -13,6 +13,10 @@ public:
         const std::string &shader_id = "",
         const std::string &material_id = "",
         glm::mat4 xform_default = glm::mat4(1.0f));
+    static glm::mat4 rotateX(float degree);
+    static glm::mat4 rotateY(float degree);
+    static glm::mat4 rotateZ(float degree);
+    static glm::mat4 rotate(float degree, float axis_x, float axis_y, float axis_z);
     std::string model() const;
     std::string shader() const;
     std::string material() const;

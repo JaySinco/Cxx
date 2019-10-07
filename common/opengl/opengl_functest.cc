@@ -119,8 +119,7 @@ void setup(Storage &repo, const std::string &target) {
             RESOURCE("models\\woman.obj"), 
             RESOURCE("textures\\woman.png"),
             Light::GLOBAL,
-            glm::rotate(glm::mat4(1.0f), glm::radians(-45.0f), glm::vec3(0.0f, 1.0f, 0.0f))*
-            glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+            Object::rotateY(-45.0f) * Object::rotateZ(90.0f),
         },
     };
     auto opt = std::find_if(std::begin(options), std::end(options), [&](const SceneConfig &c) {
@@ -143,7 +142,7 @@ void setup(Storage &repo, const std::string &target) {
     float dxy = std::hypot(dx, dy);
     initCameraX = (rect.maxX+rect.lowX)/2;
     initCameraY = (rect.maxY+rect.lowY)/2;
-    initCameraZ = rect.maxZ + dxy * 0.8f;
+    initCameraZ = rect.maxZ + dxy * 1.0f;
     gCameraZ = initCameraZ;
     gCameraMoveSpeed = std::hypot(dz, dxy) * 0.1f;
     repo.put<Camera>("CA_main", 45.0f, (float)gWidth/gHeight,
@@ -154,19 +153,20 @@ void setup(Storage &repo, const std::string &target) {
     auto diffuse = glm::vec3(0.6f, 0.6f, 0.6f);
     auto specular = glm::vec3(1.0f, 1.0f, 1.0f);
     auto direction = glm::vec3(0.0f, 0.0f, -1.0f);
-    repo.put<Light>("LI_global", glm::vec3(1.0f, 1.0, 1.0f));
-    repo.put<Light>("LI_direct", direction, ambient, diffuse, specular);
+    repo.put<GlobalLight>("LI_global", glm::vec3(1.0f, 1.0, 1.0f));
+    
+    repo.put<DirectionalLight>("LI_direct", direction, ambient, diffuse, specular);
 
     auto constant = 1.0f;
     auto linear = 0.09f;
     auto quadratic = 0.032f;
     auto position = glm::vec3(initCameraX, initCameraY, initCameraZ);
-    repo.put<Light>("LI_point", position, ambient, diffuse,
+    repo.put<PointLight>("LI_point", position, ambient, diffuse,
         specular, constant, linear, quadratic);
 
     auto innerDegree = 1.5f;
     auto outerDegree = 15.6f;
-    repo.put<Light>("LI_spot", position, direction, ambient,
+    repo.put<SpotLight>("LI_spot", position, direction, ambient,
         diffuse, specular, innerDegree, outerDegree);
 
     switch (opt->light_type) {
