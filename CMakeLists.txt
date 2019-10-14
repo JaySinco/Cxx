@@ -29,6 +29,7 @@ set(WINDOWS_DLL_LIST
     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/libquadmath-0.dll
     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/bin/opencv_world347.dll
     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/bin/opencv_ffmpeg347_64.dll
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/assimp/bin/assimp-vc141-mt.dll
     ${CMAKE_SOURCE_DIR}/product/gomoku/model/FIR-8x64i3@9336.param
 )
 message(STATUS "Windows dll -> " ${WINDOWS_DLL_LIST})
@@ -42,6 +43,8 @@ list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/glfw/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/glm/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/assimp/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/boost/boost_1_71_0/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/glad/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/imgui/include/)
 message(STATUS "Include dir -> " ${INCLUDE_DIR})

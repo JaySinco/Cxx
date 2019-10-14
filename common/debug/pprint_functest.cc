@@ -56,7 +56,7 @@ int main() {
   printer.print(2.718);
   printer.print(true);
   printer.print('x');
-  printer.print("Hello, 世界");
+  printer.print("Hello, world!");
   printer.print(nullptr);
 
   // Strings
@@ -93,7 +93,7 @@ int main() {
   // STL Container Adaptors
   std::priority_queue<int> queue;
   for(int n : {1,8,5,6,3,4,0,9,7,2}) queue.push(n);
-    printer.print(queue);
+  printer.print(queue);
 
   // Fixed-size Heterogeneous Tuples
   auto get_student = [](int id) {
