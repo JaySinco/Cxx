@@ -28,6 +28,12 @@ set_target_properties(opencv PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/ex
 add_library(assimp STATIC IMPORTED GLOBAL)
 set_target_properties(assimp PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/assimp/lib/assimp-vc141-mt.lib)
 
+add_library(thrift STATIC IMPORTED GLOBAL)
+set_target_properties(thrift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/thrift/lib/thriftmd.lib)
+
+add_library(thriftnb STATIC IMPORTED GLOBAL)
+set_target_properties(thriftnb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/thrift/lib/thriftnbmd.lib)
+
 add_subdirectory(glad)
 add_subdirectory(imgui)
 
