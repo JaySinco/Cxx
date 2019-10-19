@@ -1,0 +1,1 @@
+nmake /f Makefile.vc mode=static VC=14 MACHINE=x64 DEBUG=no WITH_SSL=dll WITH_ZLIB=static

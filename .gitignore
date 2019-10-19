@@ -6,6 +6,7 @@
 bin/
 dest/
 external/
+stage/
 !external/CMakeLists.txt
 build.sh
 imgui.ini

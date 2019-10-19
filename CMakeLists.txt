@@ -46,8 +46,12 @@ list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/assimp/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/thrift/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/boost/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/curl/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/zlib/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/json/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/glad/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/imgui/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/tinyxml/include/)
 message(STATUS "Include dir -> " ${INCLUDE_DIR})
 include_directories(${INCLUDE_DIR})
 
@@ -165,7 +169,7 @@ endmacro()
 configure_msvc_runtime()
 
 add_subdirectory(common)
-#add_subdirectory(middleware)
+add_subdirectory(middleware)
 add_subdirectory(external)
 add_subdirectory(product)
 

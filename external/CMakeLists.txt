@@ -34,8 +34,15 @@ set_target_properties(thrift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/ex
 add_library(thriftnb STATIC IMPORTED GLOBAL)
 set_target_properties(thriftnb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/thrift/lib/thriftnbmd.lib)
 
+add_library(libcurl STATIC IMPORTED GLOBAL)
+set_target_properties(libcurl PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/curl/lib/libcurl_a.lib)
+
+add_library(zlib STATIC IMPORTED GLOBAL)
+set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/zlib/lib/zlibstatic.lib)
+
 add_subdirectory(glad)
 add_subdirectory(imgui)
+add_subdirectory(tinyxml)
 
 add_dependencies(__target_${MODULE_NAME}
     ${SUBDIRECTORY_TARGETS}
