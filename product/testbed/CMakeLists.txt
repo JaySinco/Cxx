@@ -10,3 +10,6 @@ target_link_libraries(testbed_window common_utility)
 add_executable(testbed_imgui testbed_imgui.cc)
 target_link_libraries(testbed_imgui glog glfw glad imgui opengl32.lib)
 
+add_executable(testbed_web_wechat testbed_web_wechat.cc)
+target_link_libraries(testbed_web_wechat Ws2_32.lib wldap32.lib Normaliz.lib 
+    glog libcurl libssl libcrypto zlib tinyxml)

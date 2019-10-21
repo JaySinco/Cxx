@@ -6,19 +6,53 @@
 #include <regex>
 #include <sstream>
 #include <ctime>
+#define CURL_STATICLIB 
+#include <curl/curl.h>
+#include <tinyxml2.h>
 #include <nlohmann/json.hpp>
-#include "client.h"
 #define QUOT(x) (std::string("\"")+x+"\"")
 #define MAKE_DETAIL_URL(x) (std::string("https://")+x+"/cgi-bin/mmwebwx-bin")
-
-namespace cxx {
-
-namespace wx {
 
 const std::string BASE_DOMAIN = "https://login.weixin.qq.com";
 const std::string USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36";
 
-Client::Client() {
+struct LoginInfo {
+    std::string url;
+    std::string fileUrl;
+    std::string syncUrl;
+    int logintime;
+    std::string skey;
+    std::string wxsid;
+    std::string wxuin;
+    std::string passTicket;
+    std::string baseRequest;
+};
+
+struct HttpResponse {
+    int code;
+    std::string headers;
+    std::string body;
+};
+
+class WechatClient {
+public:
+    WechatClient();
+    ~WechatClient();
+    void login();
+private:
+    void waitForScanQRCode();
+    void processLogInfo(const std::string &context);
+    void iterXmlNode(tinyxml2::XMLElement *node);
+    HttpResponse httpGet(const std::string &url, const std::vector<std::string> &headers);
+    HttpResponse httpPost(
+        const std::string &url,
+        const std::vector<std::string> &headers,
+        const std::string &data);
+    LoginInfo logInfo;
+    CURL *curl;
+};
+
+WechatClient::WechatClient() {
     curl = curl_easy_init();
     if (!curl) {
         LOG(ERROR) << "can't init curl easy interface!";
@@ -26,30 +60,29 @@ Client::Client() {
     }
 }
 
-Client::~Client() {
+WechatClient::~WechatClient() {
     if (curl)
         curl_easy_cleanup(curl);
 }
 
-void Client::login() {
+void WechatClient::login() {
     waitForScanQRCode();
-    LOG(INFO) << "loading the contact, this may take a little while";
-
-    std::ostringstream wxInitUrl;
-    time_t localTime = std::time(nullptr);
-    wxInitUrl << logInfo.url << "/webwxinit" << "?r=" << (-1 * localTime / 1579) 
-        << "&pass_ticket=" << logInfo.passTicket;
-    const std::vector<std::string> jsonHeader = {
-        "ContentType: application/json; charset=UTF-8",
-        "User-Agent: " + USER_AGENT
-    };
-    auto wxInitResp = httpPost(wxInitUrl.str(), jsonHeader, logInfo.baseRequest);
-    LOG(INFO) << wxInitResp.code;
-    LOG(INFO) << wxInitResp.headers;
-    LOG(INFO) << wxInitResp.body;
+    // LOG(INFO) << "loading the contact, this may take a little while";
+    // std::ostringstream wxInitUrl;
+    // time_t localTime = std::time(nullptr);
+    // wxInitUrl << logInfo.url << "/webwxinit" << "?r=" << (-1 * localTime / 1579) 
+    //     << "&pass_ticket=" << logInfo.passTicket;
+    // const std::vector<std::string> jsonHeader = {
+    //     "ContentType: application/json; charset=UTF-8",
+    //     "User-Agent: " + USER_AGENT
+    // };
+    // auto wxInitResp = httpPost(wxInitUrl.str(), jsonHeader, logInfo.baseRequest);
+    // LOG(INFO) << wxInitResp.code;
+    // LOG(INFO) << wxInitResp.headers;
+    // LOG(INFO) << wxInitResp.body;
 }
 
-void Client::waitForScanQRCode() {
+void WechatClient::waitForScanQRCode() {
     const std::string qrLoginUrl = BASE_DOMAIN + "/jslogin?appid=wx782c26e4c19acffb&fun=new";
     const std::vector<std::string> agentHeader = { "User-Agent: " + USER_AGENT };
     const std::string showQRUrl = "http://api.qrserver.com/v1/create-qr-code/?data=https://login.weixin.qq.com/l/";
@@ -112,7 +145,7 @@ void Client::waitForScanQRCode() {
     }
 }
 
-void Client::processLogInfo(const std::string &context) {
+void WechatClient::processLogInfo(const std::string &context) {
     const std::vector<std::string> agentHeader = { "User-Agent: " + USER_AGENT };
     const std::regex redirect_patt("window.redirect_uri=\"(\\S+)\";");
     std::smatch redirect_match;
@@ -177,7 +210,7 @@ void Client::processLogInfo(const std::string &context) {
     LOG(INFO) << "baseRequest=" << QUOT(logInfo.baseRequest);
 }
 
-void Client::iterXmlNode(tinyxml2::XMLElement *node) {
+void WechatClient::iterXmlNode(tinyxml2::XMLElement *node) {
     while (node) {
         const std::string name = node->Name();
         std::string text = "";
@@ -231,17 +264,24 @@ HttpResponse httpMethod(
     return resp;
 }
 
-HttpResponse Client::httpGet( const std::string &url, const std::vector<std::string> &headers) {
+HttpResponse WechatClient::httpGet( const std::string &url, const std::vector<std::string> &headers) {
     return httpMethod(curl, "GET", url, headers, "");
 }
 
-HttpResponse Client::httpPost(
+HttpResponse WechatClient::httpPost(
         const std::string &url,
         const std::vector<std::string> &headers,
         const std::string &data) {
     return httpMethod(curl, "POST", url, headers, data);
 }
 
-} // namespace wx
-
-} // namespace cxx
+int main(int argc, char *argv[]) {
+    google::InitGoogleLogging(argv[0]);
+    FLAGS_logtostderr = 1;
+    FLAGS_minloglevel = 0;
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    WechatClient robot;
+    robot.login();
+    curl_global_cleanup();
+    return 0;
+}

@@ -4,7 +4,7 @@
 #include "scenery.h"
 #include <GLFW/glfw3.h>
 
-#define RESOURCE(relpath) (std::string("D:\\Jaysinco\\Cxx\\common\\opengl\\resources\\")+relpath)
+#define RESOURCE(relpath) (std::string("D:\\Jaysinco\\Cxx\\middleware\\opengl\\resources\\")+relpath)
 
 using namespace cxx::gl;
 

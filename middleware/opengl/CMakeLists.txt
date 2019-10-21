@@ -1,4 +1,4 @@
-set(MODULE_NAME common_opengl)
+set(MODULE_NAME middleware_opengl)
 add_custom_target(__target_${MODULE_NAME})
 
 set(LIB_SRCS

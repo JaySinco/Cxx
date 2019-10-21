@@ -1,16 +1,13 @@
-set(MODULE_NAME middleware_wechat)
-add_custom_target(__target_${MODULE_NAME})
+cmake_minimum_required(VERSION 3.2)
+project(CXX_Wechat)
 
-set(LIB_SRCS
-    client
-    client.cc
-    )
+add_compile_options(/source-charset:utf-8)
+# include_directories(../../windows/x64/include)
+# link_directories(D:/Jaysinco/Cxx/lib)
 
-add_library(${MODULE_NAME} STATIC ${LIB_SRCS})
-target_link_libraries(${MODULE_NAME} Ws2_32.lib wldap32.lib Normaliz.lib 
-    glog libcurl libssl libcrypto zlib tinyxml)
+add_executable(wechat main.cc)
 
-add_executable(wechat_functest wechat_functest.cc)
-target_link_libraries(wechat_functest ${MODULE_NAME})
+# set_property(TARGET wechat PROPERTY CXX_STANDARD 11)
+# target_link_libraries(wechat libmxnet.lib)
 
 
