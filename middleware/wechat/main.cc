@@ -10,6 +10,10 @@
 #include "message.h"
 #define QUOT(x) (std::string("\"")+x+"\"")
 
+bool gAlreadyLogin = false;
+bool gJustLogin = false;
+std::vector<UserInfo> gUserInfo;
+
 DWORD findPidByProcessName(const wchar_t* processName) {
     HANDLE hProcess = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
     PROCESSENTRY32 pe32 = { 0 };
@@ -86,9 +90,15 @@ bool injectDll() {
     std::string dllpath = dllpathStream.str();
     std::cout << "dllpath=" << QUOT(dllpath) << std::endl;
     DWORD dwPid = findPidByProcessName(L"WeChat.exe");
-    if (dwPid == 0) {
-        dwPid = openWechat();
+    if (dwPid != 0) {
+        std::cout << "WeChat.exe is running, restart!" << std::endl;
+        HANDLE hwx = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPid);
+        if (hwx) {
+            TerminateProcess(hwx, 0);
+            CloseHandle(hwx);
+        }
     }
+    dwPid = openWechat();
     if (!isInjected(dwPid)) {
         HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPid);
         if (hProcess == NULL) {
@@ -124,17 +134,6 @@ bool injectDll() {
     return true;
 }
 
-struct UserInfo
-{
-	wchar_t UserId[80];
-	wchar_t UserNumber[80];
-	wchar_t UserRemark[80];
-	wchar_t UserNickName[80];
-};
-
-bool gAlreadyLogin = false;
-bool gJustLogin = false;
-std::vector<UserInfo> gUserInfo;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam) {
     if (Message == WM_COPYDATA) {
         COPYDATASTRUCT *pCopyData = (COPYDATASTRUCT*)lParam;
@@ -187,29 +186,28 @@ void createWechatWindow(const std::wstring &title) {
 
 int main(int argc, char *argv[]) {
     std::locale::global(std::locale(""));
-    std::wcout << L"wcout中文测试" << std::endl;
     std::thread login(createWechatWindow, L"Login");
     std::thread helper(createWechatWindow, L"微信助手");
-    std::cout << injectDll();
+    if (!injectDll()) {
+        std::cout << "failed to inject dll!" << std::endl;
+        exit(-1);
+    }
     while (!gJustLogin && !gAlreadyLogin) {
         Sleep(500);
     }
-    if (gAlreadyLogin) {
-        std::cout << "already login!" << std::endl;
-        exit(-1);
-    }
-    Sleep(3000);
-    for (const auto &user: gUserInfo) {
-        std::wcout << "friend: " << user.UserNickName << std::endl;
-    }
+    // std::cout << "get " << gUserInfo.size() << " friends!" << std::endl;
+    auto pWnd = FindWindow(NULL, L"WeChatHelper");
+    COPYDATASTRUCT data;
+    MessageStruct msg;
+    const wchar_t *m_wxid = L"FileHelper";
+    const wchar_t *m_Content = L"测试发消息!";
+	wcscpy_s(msg.userId, wcslen(m_wxid) + 1, m_wxid);
+	wcscpy_s(msg.content, wcslen(m_Content) + 1, m_Content);
+    data.dwData = WM_SendTextMessage;
+    data.cbData = sizeof(MessageStruct);
+    data.lpData = &msg;
+    SendMessage(pWnd, WM_COPYDATA, NULL, (LPARAM)&data);
     login.join();
     helper.join();
-    /*auto pWnd = FindWindow(NULL, L"WeChatHelper");
-    std::cout << pWnd;
-    COPYDATASTRUCT logout;
-    logout.dwData = WM_Logout;
-    logout.cbData = 0;
-    logout.lpData = NULL;
-    SendMessage(pWnd, WM_COPYDATA, NULL, (LPARAM)&logout);*/
     return 0;
 }

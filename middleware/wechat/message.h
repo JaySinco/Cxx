@@ -26,3 +26,15 @@
 #define WM_DelRoomMember 23
 #define WM_OpenUrl 24
 #define WM_SaveFriendList 25
+
+struct UserInfo {
+	wchar_t userId[80];
+	wchar_t userNumber[80];
+	wchar_t userRemark[80];
+	wchar_t userNickName[80];
+};
+
+struct MessageStruct {
+	wchar_t userId[40];
+	wchar_t content[MAX_PATH];
+};
