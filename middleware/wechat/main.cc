@@ -3,7 +3,11 @@
 #include <TlHelp32.h>
 #include <direct.h>
 #include <sstream>
+#include <locale>
 #include <iostream>
+#include <thread>
+#include <vector>
+#include "message.h"
 #define QUOT(x) (std::string("\"")+x+"\"")
 
 DWORD findPidByProcessName(const wchar_t* processName) {
@@ -40,6 +44,40 @@ bool isInjected(DWORD dwProcessid) {
     return false;
 }
 
+DWORD openWechat() {
+    HKEY hKEY;
+	LPCTSTR data_set = L"Software\\Tencent\\WeChat";
+	if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_CURRENT_USER, data_set, 0, KEY_READ, &hKEY)) {
+		wchar_t dwValue[MAX_PATH];
+		DWORD dwSize = MAX_PATH;
+		DWORD dwType = REG_SZ;
+		if (ERROR_SUCCESS != RegQueryValueEx(hKEY, L"InstallPath", 0, &dwType, (LPBYTE)&dwValue, &dwSize)) {
+			std::cout << "failed to query wechat install path from regedit" << std::endl;
+            return NULL;
+		}
+		else {
+            std::wstring wxpath = dwValue;
+            wxpath.append(L"\\WeChat.exe");
+            std::wcout << L"wxpath=\"" << wxpath << L"\"" << std::endl;
+			STARTUPINFO si;
+            PROCESS_INFORMATION pi;
+            ZeroMemory(&si, sizeof(si));
+            si.cb = sizeof(si);
+            ZeroMemory(&pi, sizeof(pi));
+            si.dwFlags = STARTF_USESHOWWINDOW;
+            si.wShowWindow = TRUE;
+            CreateProcess(wxpath.c_str(), NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+            HWND hWechatMainForm = NULL;
+            while (NULL == hWechatMainForm) {
+                hWechatMainForm = FindWindow(L"WeChatLoginWndForPC", NULL);
+                Sleep(500);
+            }
+            return pi.dwProcessId;
+		}
+	}
+	RegCloseKey(hKEY);
+}
+
 bool injectDll() {
     char currentPath[_MAX_PATH];
     _getcwd(currentPath, _MAX_PATH);
@@ -49,20 +87,7 @@ bool injectDll() {
     std::cout << "dllpath=" << QUOT(dllpath) << std::endl;
     DWORD dwPid = findPidByProcessName(L"WeChat.exe");
     if (dwPid == 0) {
-        STARTUPINFO si;
-        PROCESS_INFORMATION pi;
-        ZeroMemory(&si, sizeof(si));
-        si.cb = sizeof(si);
-        ZeroMemory(&pi, sizeof(pi));
-        si.dwFlags = STARTF_USESHOWWINDOW;
-        si.wShowWindow = TRUE;
-        CreateProcess(L"D:\\ProgramFiles\\WeChat\\WeChat.exe", NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
-        HWND hWechatMainForm = NULL;
-        while (NULL == hWechatMainForm) {
-            hWechatMainForm = FindWindow(L"WeChatLoginWndForPC", NULL);
-            Sleep(500);
-        }
-        dwPid = pi.dwProcessId;
+        dwPid = openWechat();
     }
     if (!isInjected(dwPid)) {
         HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPid);
@@ -99,20 +124,36 @@ bool injectDll() {
     return true;
 }
 
-#define WM_AlreadyLogin 21
+struct UserInfo
+{
+	wchar_t UserId[80];
+	wchar_t UserNumber[80];
+	wchar_t UserRemark[80];
+	wchar_t UserNickName[80];
+};
+
+bool gAlreadyLogin = false;
+bool gJustLogin = false;
+std::vector<UserInfo> gUserInfo;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam) {
     if (Message == WM_COPYDATA) {
         COPYDATASTRUCT *pCopyData = (COPYDATASTRUCT*)lParam;
         switch (pCopyData->dwData) {
+        case WM_Login:
+            gJustLogin = true;
+            break;
         case WM_AlreadyLogin:
-            std::cout << "already login!!";
+            gAlreadyLogin = true;
+            break;
+        case WM_GetFriendList:
+            gUserInfo.push_back(*(UserInfo*)pCopyData->lpData);
             break;
         }
     }
     return DefWindowProc(hWnd, Message, wParam, lParam);
 }
 
-void RegisterWindow() {
+void createWechatWindow(const std::wstring &title) {
     WNDCLASS wnd;
     wnd.style = CS_VREDRAW | CS_HREDRAW;
     wnd.lpfnWndProc = WndProc;
@@ -123,11 +164,11 @@ void RegisterWindow() {
     wnd.hCursor = NULL;
     wnd.hbrBackground = (HBRUSH)COLOR_WINDOW;
     wnd.lpszMenuName = NULL;
-    wnd.lpszClassName = L"LoginGGtt";
+    wnd.lpszClassName = L"WX_HELPER";
     RegisterClass(&wnd);
     HWND hWnd = CreateWindow(
-        L"LoginGGtt",
-        L"Login",
+        wnd.lpszClassName,
+        title.c_str(),
         WS_OVERLAPPEDWINDOW,
         10, 10, 500, 300, 
         NULL,             
@@ -135,25 +176,34 @@ void RegisterWindow() {
         GetModuleHandle(NULL),       
         NULL            
     );
-
-    ShowWindow(hWnd, SW_SHOW);
+    ShowWindow(hWnd, SW_HIDE);
     UpdateWindow(hWnd);
-
     MSG  msg = {};
-
-    while (GetMessage(&msg, 0, 0, 0))
-    {
-
+    while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
-
         DispatchMessage(&msg);
     }
 }
 
-#define WM_Logout 2
 int main(int argc, char *argv[]) {
+    std::locale::global(std::locale(""));
+    std::wcout << L"wcout中文测试" << std::endl;
+    std::thread login(createWechatWindow, L"Login");
+    std::thread helper(createWechatWindow, L"微信助手");
     std::cout << injectDll();
-    //RegisterWindow();
+    while (!gJustLogin && !gAlreadyLogin) {
+        Sleep(500);
+    }
+    if (gAlreadyLogin) {
+        std::cout << "already login!" << std::endl;
+        exit(-1);
+    }
+    Sleep(3000);
+    for (const auto &user: gUserInfo) {
+        std::wcout << "friend: " << user.UserNickName << std::endl;
+    }
+    login.join();
+    helper.join();
     /*auto pWnd = FindWindow(NULL, L"WeChatHelper");
     std::cout << pWnd;
     COPYDATASTRUCT logout;
