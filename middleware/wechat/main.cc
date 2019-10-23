@@ -57,6 +57,7 @@ DWORD openWechat() {
 		DWORD dwType = REG_SZ;
 		if (ERROR_SUCCESS != RegQueryValueEx(hKEY, L"InstallPath", 0, &dwType, (LPBYTE)&dwValue, &dwSize)) {
 			std::cout << "failed to query wechat install path from regedit" << std::endl;
+            RegCloseKey(hKEY);
             return NULL;
 		}
 		else {
@@ -76,10 +77,11 @@ DWORD openWechat() {
                 hWechatMainForm = FindWindow(L"WeChatLoginWndForPC", NULL);
                 Sleep(500);
             }
+            RegCloseKey(hKEY);
             return pi.dwProcessId;
 		}
 	}
-	RegCloseKey(hKEY);
+    return NULL;
 }
 
 bool injectDll() {
@@ -134,8 +136,32 @@ bool injectDll() {
     return true;
 }
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam) {
-    if (Message == WM_COPYDATA) {
+std::wstring findNickNameById(const std::wstring &wxid) {
+    for (const auto &member: gUserInfo) {
+        if (wxid == member.userId) {
+            return member.userNickName;
+        }
+    }
+    return wxid;
+}
+
+void sendTextMessage(const std::wstring &wxid, const std::wstring &content) {
+    auto hwnd = FindWindow(NULL, L"WeChatHelper");
+    COPYDATASTRUCT data;
+    MessageSend msg;
+	wcscpy_s(msg.userId, wxid.size()+1, wxid.c_str());
+	wcscpy_s(msg.content, content.size()+1, content.c_str());
+    data.dwData = WM_SendTextMessage;
+    data.cbData = sizeof(MessageSend);
+    data.lpData = &msg;
+    SendMessage(hwnd, WM_COPYDATA, NULL, (LPARAM)&data);
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+    if (message == WM_CLOSE) {
+        PostQuitMessage(0);
+    }
+    if (message == WM_COPYDATA) {
         COPYDATASTRUCT *pCopyData = (COPYDATASTRUCT*)lParam;
         switch (pCopyData->dwData) {
         case WM_Login:
@@ -144,12 +170,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam) 
         case WM_AlreadyLogin:
             gAlreadyLogin = true;
             break;
-        case WM_GetFriendList:
-            gUserInfo.push_back(*(UserInfo*)pCopyData->lpData);
+        case WM_GetFriendList: {
+            auto user = (UserInfo*)pCopyData->lpData;
+            std::wcout << "add friend: " << user->userNickName << std::endl;
+            gUserInfo.push_back(*user);
+            break;
+        }
+        case WM_ShowChatRecord:
+            auto msg = (MessageReceive*)pCopyData->lpData;
+            std::wstring nickName = findNickNameById(msg->wxid);
+            std::wcout << "[" << msg->type << "/" << msg->source << "] <" 
+                << nickName << "(" << msg->wxid << ")"<< "/" 
+                << findNickNameById(msg->msgSender) << ">: "
+                << msg->content << std::endl;
+            if (nickName == std::wstring(L"文件传输助手")) {
+                sendTextMessage(msg->wxid, std::wstring(L"<ECHO>")+msg->content);
+            }
             break;
         }
     }
-    return DefWindowProc(hWnd, Message, wParam, lParam);
+    return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
 void createWechatWindow(const std::wstring &title) {
@@ -177,10 +217,32 @@ void createWechatWindow(const std::wstring &title) {
     );
     ShowWindow(hWnd, SW_HIDE);
     UpdateWindow(hWnd);
-    MSG  msg = {};
+    MSG msg = {};
     while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
+    }
+}
+
+BOOL WINAPI ctrlHandler(DWORD fdwCtrlType) {
+    switch (fdwCtrlType) {
+    case CTRL_C_EVENT: {
+        DWORD dwPid = findPidByProcessName(L"WeChat.exe");
+        if (dwPid != 0) {
+            HANDLE hwx = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPid);
+            if (hwx) {
+                TerminateProcess(hwx, 0);
+                CloseHandle(hwx);
+            }
+        }
+        std::cout << "wechat closed!" << std::endl;
+        PostMessage(FindWindow(NULL, L"Login"), WM_CLOSE, 0, 0);
+        PostMessage(FindWindow(NULL, L"微信助手"), WM_CLOSE, 0, 0);
+        std::cout << "builtin window closed!" << std::endl;
+        return TRUE;
+    }
+    default:
+        return FALSE;
     }
 }
 
@@ -195,18 +257,7 @@ int main(int argc, char *argv[]) {
     while (!gJustLogin && !gAlreadyLogin) {
         Sleep(500);
     }
-    // std::cout << "get " << gUserInfo.size() << " friends!" << std::endl;
-    auto pWnd = FindWindow(NULL, L"WeChatHelper");
-    COPYDATASTRUCT data;
-    MessageStruct msg;
-    const wchar_t *m_wxid = L"FileHelper";
-    const wchar_t *m_Content = L"测试发消息!";
-	wcscpy_s(msg.userId, wcslen(m_wxid) + 1, m_wxid);
-	wcscpy_s(msg.content, wcslen(m_Content) + 1, m_Content);
-    data.dwData = WM_SendTextMessage;
-    data.cbData = sizeof(MessageStruct);
-    data.lpData = &msg;
-    SendMessage(pWnd, WM_COPYDATA, NULL, (LPARAM)&data);
+    SetConsoleCtrlHandler(ctrlHandler, TRUE);
     login.join();
     helper.join();
     return 0;

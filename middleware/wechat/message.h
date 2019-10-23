@@ -34,7 +34,17 @@ struct UserInfo {
 	wchar_t userNickName[80];
 };
 
-struct MessageStruct {
+struct MessageSend {
 	wchar_t userId[40];
 	wchar_t content[MAX_PATH];
+};
+
+struct MessageReceive
+{
+	wchar_t type[10];		//消息类型
+	wchar_t source[20];		//消息来源
+	wchar_t wxid[40];		//微信ID/群ID
+	wchar_t msgSender[40];	//消息发送者
+	wchar_t content[200];	//消息内容
+	BOOL isMoney;	        //是否是收款消息
 };
