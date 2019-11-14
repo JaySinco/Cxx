@@ -1,6 +1,8 @@
 #include <Windows.h>
 #include <iostream>
+#include <cmath>
 #include <vector>
+#include <deque>
 
 struct Coordinate {
     int x;
@@ -31,6 +33,10 @@ std::ostream &operator<<(std::ostream &out, const Color &color) {
     return out;
 }
 
+bool operator==(const Color &a, const Color &b) {
+    return (std::abs(a.r-b.r)+std::abs(a.g-b.g)+std::abs(a.b-b.b)) < 5;
+}
+
 class ImageMat {
 public:
     ImageMat(Color *data, int width, int height): data_(data), height_(height), width_(width) {}
@@ -39,6 +45,7 @@ public:
     ~ImageMat() { delete [] data_; }
     ImageMat &operator=(const ImageMat&) = delete;
     ImageMat &operator=(ImageMat&&) = delete;
+    Color at(const Coordinate& coord) { return at(coord.y, coord.x); }
     Color at(int row, int col) {
         if (!(row >= 0 && row < height_ && col >= 0 && col < width_)) {
             std::cout << "wrong color index, row=" << row << ", col=" << col << std::endl;
@@ -119,7 +126,40 @@ void drawPoints(const std::vector<Coordinate> &points, double msExpired) {
 }
 
 void selectSameColor() {
-    //...
+    Sleep(2000);
+    POINT mousePos;
+    GetCursorPos(&mousePos);
+    SetCursorPos(0, 0);
+    ImageMat img = ImageMat::fromHWND(NULL);
+    Coordinate currPos = { mousePos.x, mousePos.y };
+    Color currColor = img.at(currPos);
+    const int W = img.Width(), H = img.Height();
+    bool *checked = new bool[W * H]{ false };
+    checked[mousePos.y * W + mousePos.x] = true;
+    std::deque<Coordinate> candidates = { currPos };
+    std::vector<Coordinate> points = { currPos };
+    while (candidates.size() > 0) {
+        Coordinate pt = candidates.front();
+        candidates.pop_front();
+        for (int dx : {-1, 0, 1}) {
+            for (int dy: {-1, 0, 1}) {
+                int x = pt.x + dx, y = pt.y + dy;
+                if (x >= 0 && x < W && y >= 0 && y < H && !checked[y * W + x]) {
+                    checked[y * W + x] = true;
+                    if (img.at(y, x) == currColor) {
+                        Coordinate target = { x, y };
+                        points.push_back(target);
+                        candidates.push_back(target);
+                    } else {
+                        std::cout << "want" << currColor << ", get" << img.at(y, x) << std::endl;
+                    }
+                }
+            }
+        }
+    }
+    std::cout << "pointSize=" << points.size() << std::endl;
+    drawPoints(points, 3000);
+    delete [] checked;
 }
 
 // ************** TEST & MAIN **************
@@ -147,5 +187,5 @@ void testDrawPoints() {
 }
 
 int main() {
-
+    selectSameColor();
 }
