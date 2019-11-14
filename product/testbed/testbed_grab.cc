@@ -34,7 +34,7 @@ std::ostream &operator<<(std::ostream &out, const Color &color) {
 }
 
 bool operator==(const Color &a, const Color &b) {
-    return (std::abs(a.r-b.r)+std::abs(a.g-b.g)+std::abs(a.b-b.b)) < 5;
+    return (std::abs(a.r-b.r)+std::abs(a.g-b.g)+std::abs(a.b-b.b)) < 50;
 }
 
 class ImageMat {
@@ -151,7 +151,7 @@ void selectSameColor() {
                         points.push_back(target);
                         candidates.push_back(target);
                     } else {
-                        std::cout << "want" << currColor << ", get" << img.at(y, x) << std::endl;
+                        //std::cout << "want" << currColor << ", get" << img.at(y, x) << std::endl;
                     }
                 }
             }
@@ -187,5 +187,6 @@ void testDrawPoints() {
 }
 
 int main() {
+    SetProcessDPIAware();
     selectSameColor();
 }
