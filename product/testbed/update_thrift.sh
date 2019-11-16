@@ -16,4 +16,4 @@ function find_root() {
 
 root_dir=`find_root "${current_dir}" 0`
 
-"${root_dir}/external/windows/x64/thrift/bin/thrift.exe" -r -v --gen cpp --gen js:node testbed.thrift
+"${root_dir}/external/windows/x64/thrift/bin/thrift.exe" -r -v --gen cpp --gen js:node proto.thrift
