@@ -14,9 +14,9 @@ leveldb::DB* db = nullptr;
 void setup(int stopLineNo=-1) {
     if (stopLineNo == 0)
         return;
-    // open leveldb
+    // create leveldb
     assert(db == nullptr);
-    std::cout << "[INFO] open leveldb..." << std::endl;
+    std::cout << "[INFO] setup leveldb..." << std::endl;
     leveldb::Options options;
     options.create_if_missing = true;
     leveldb::Status status = leveldb::DB::Open(options, RESOURCE(EMBEDDING_BASE_NAME), &db);
@@ -57,20 +57,21 @@ void setup(int stopLineNo=-1) {
             leveldb::Slice((char*)vec.data(), vec.size()*sizeof(float)));
         std::cout << "\r[INFO] line=" << i << std::flush;
     }
-    std::cout << "\n[INFO] done!" << std::endl;
+    std::cout << "\n[INFO] setup done!" << std::endl;
+}
+
+void open() {
+    assert(db == nullptr);
+    std::cout << "[INFO] open leveldb..." << std::endl;
+    leveldb::Status status = leveldb::DB::Open(leveldb::Options(), RESOURCE(EMBEDDING_BASE_NAME), &db);
+    if (!status.ok()) {
+        std::cerr << "[ERROR] failed to open leveldb: " << status.ToString() << std::endl;
+        exit(-1);
+    }
 }
 
 bool lookup(const std::string &word, std::vector<float> &vec) {
-    // open leveldb
-    if (db == nullptr) {
-        std::cout << "[INFO] open leveldb..." << std::endl;
-        leveldb::Status status = leveldb::DB::Open(leveldb::Options(), RESOURCE(EMBEDDING_BASE_NAME), &db);
-        if (!status.ok()) {
-            std::cerr << "[ERROR] failed to open leveldb: " << status.ToString() << std::endl;
-            exit(-1);
-        }
-    }
-    // find key
+    if (db == nullptr) open();
     std::string value;
     leveldb::Status status = db->Get(leveldb::ReadOptions(), word, &value);
     if (!status.ok()) {
@@ -83,13 +84,24 @@ bool lookup(const std::string &word, std::vector<float> &vec) {
     return true;
 }
 
+int count() {
+    if (db == nullptr) open();
+    int count = 0;
+    leveldb::Iterator* it = db->NewIterator(leveldb::ReadOptions());
+    for (it->SeekToFirst(); it->Valid(); it->Next()) {
+        std::cout << "\r[INFO] count=" << ++count << std::flush;
+    }
+    std::cout << std::endl;
+    return count;
+}
+
 int main() {
-    setup(0);
+    setup(1);
     std::vector<float> vec;
     if (lookup(u8"下面", vec)) {
-        std::cout << "[INFO] lookup_size=" << vec.size() << std::endl;
+        std::cout << "[INFO] lookup_dimension=" << vec.size() << std::endl;
     }
-    // clear up
+    count();
     if (db != nullptr) {
         std::cout << "[INFO] leveldb closed!" << std::endl;
         delete db;
