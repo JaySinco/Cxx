@@ -49,6 +49,7 @@ list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/curl/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/zlib/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/json/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/leveldb/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/glad/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/imgui/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/tinyxml/include/)
@@ -168,8 +169,8 @@ endmacro()
 
 configure_msvc_runtime()
 
-add_subdirectory(common)
-add_subdirectory(middleware)
+# add_subdirectory(common)
+# add_subdirectory(middleware)
 add_subdirectory(external)
 add_subdirectory(product)
 
