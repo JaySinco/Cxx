@@ -39,7 +39,7 @@ void setup(int stopLineNo=-1) {
             std::cerr << "[ERROR] failed to read next line=" << i << std::endl;
             exit(-1);
         }
-        int firstSpaceIndex = line.find_first_of(' ');
+        size_t firstSpaceIndex = line.find_first_of(' ');
         std::string word = line.substr(0, firstSpaceIndex);
         std::istringstream ss(line.substr(firstSpaceIndex+1));
         float dim = 0;
@@ -77,31 +77,29 @@ bool lookup(const std::string &word, std::vector<float> &vec) {
     if (!status.ok()) {
         return false;
     }
-    int size = value.size() / sizeof(float);
+    size_t size = value.size() / sizeof(float);
     float *begin = (float*)value.data();
     float *end = begin + size;
     vec = std::vector<float>(begin, end);
     return true;
 }
 
-int count() {
+void peek(int n=5) {
     if (db == nullptr) open();
-    int count = 0;
     leveldb::Iterator* it = db->NewIterator(leveldb::ReadOptions());
-    for (it->SeekToFirst(); it->Valid(); it->Next()) {
-        std::cout << "\r[INFO] count=" << ++count << std::flush;
+    int i = 0;
+    for (it->Seek(u8"此去经年"); it->Valid() && i++ < n; it->Next()) {
+        std::cout << "[INFO] sample" << i << "=" << it->key().ToString() << std::endl;
     }
-    std::cout << std::endl;
-    return count;
 }
 
 int main() {
     setup(1);
     std::vector<float> vec;
-    if (lookup(u8"下面", vec)) {
+    if (lookup(u8".", vec)) {
         std::cout << "[INFO] lookup_dimension=" << vec.size() << std::endl;
     }
-    count();
+    peek();
     if (db != nullptr) {
         std::cout << "[INFO] leveldb closed!" << std::endl;
         delete db;
