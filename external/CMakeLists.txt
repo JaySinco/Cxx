@@ -40,8 +40,8 @@ add_custom_target( __target_${MODULE_NAME})
 # add_library(zlib STATIC IMPORTED GLOBAL)
 # set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/zlib/lib/zlibstatic.lib)
 
-add_library(leveldb STATIC IMPORTED GLOBAL)
-set_target_properties(leveldb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/leveldb/lib/leveldb.lib)
+# add_library(leveldb STATIC IMPORTED GLOBAL)
+# set_target_properties(leveldb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/leveldb/lib/leveldb.lib)
 
 # add_subdirectory(glad)
 # add_subdirectory(imgui)
