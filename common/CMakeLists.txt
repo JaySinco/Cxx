@@ -1,8 +1,7 @@
 set(MODULE_NAME common)
 add_custom_target(__target_${MODULE_NAME})
 
-add_subdirectory(utility)
-add_subdirectory(debug)
+add_subdirectory(log)
 
 add_dependencies(__target_${MODULE_NAME}
     ${SUBDIRECTORY_TARGETS}
