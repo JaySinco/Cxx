@@ -43,6 +43,9 @@ set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/exte
 add_library(leveldb STATIC IMPORTED GLOBAL)
 set_target_properties(leveldb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/leveldb/lib/leveldb.lib)
 
+add_library(boost-atomic STATIC IMPORTED GLOBAL)
+set_target_properties(boost-atomic PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/boost/lib/libboost_atomic-vc141-mt-x64-1_71.lib)
+
 add_subdirectory(glad)
 add_subdirectory(imgui)
 add_subdirectory(tinyxml)
