@@ -530,7 +530,20 @@ uint32_t RemoteShellService_GetDiskInfo_args::read(::apache::thrift::protocol::T
     if (ftype == ::apache::thrift::protocol::T_STOP) {
       break;
     }
-    xfer += iprot->skip(ftype);
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->driver);
+          this->__isset.driver = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
     xfer += iprot->readFieldEnd();
   }
 
@@ -543,6 +556,10 @@ uint32_t RemoteShellService_GetDiskInfo_args::write(::apache::thrift::protocol::
   uint32_t xfer = 0;
   ::apache::thrift::protocol::TOutputRecursionTracker tracker(*oprot);
   xfer += oprot->writeStructBegin("RemoteShellService_GetDiskInfo_args");
+
+  xfer += oprot->writeFieldBegin("driver", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString(this->driver);
+  xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
@@ -558,6 +575,10 @@ uint32_t RemoteShellService_GetDiskInfo_pargs::write(::apache::thrift::protocol:
   uint32_t xfer = 0;
   ::apache::thrift::protocol::TOutputRecursionTracker tracker(*oprot);
   xfer += oprot->writeStructBegin("RemoteShellService_GetDiskInfo_pargs");
+
+  xfer += oprot->writeFieldBegin("driver", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString((*(this->driver)));
+  xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
@@ -1196,18 +1217,19 @@ void RemoteShellServiceClient::recv_GetMemoryInfo(MemoryInfo& _return)
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "GetMemoryInfo failed: unknown result");
 }
 
-void RemoteShellServiceClient::GetDiskInfo(DiskInfo& _return)
+void RemoteShellServiceClient::GetDiskInfo(DiskInfo& _return, const std::string& driver)
 {
-  send_GetDiskInfo();
+  send_GetDiskInfo(driver);
   recv_GetDiskInfo(_return);
 }
 
-void RemoteShellServiceClient::send_GetDiskInfo()
+void RemoteShellServiceClient::send_GetDiskInfo(const std::string& driver)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("GetDiskInfo", ::apache::thrift::protocol::T_CALL, cseqid);
 
   RemoteShellService_GetDiskInfo_pargs args;
+  args.driver = &driver;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -1572,7 +1594,7 @@ void RemoteShellServiceProcessor::process_GetDiskInfo(int32_t seqid, ::apache::t
 
   RemoteShellService_GetDiskInfo_result result;
   try {
-    iface_->GetDiskInfo(result.success);
+    iface_->GetDiskInfo(result.success, args.driver);
     result.__isset.success = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
@@ -1967,19 +1989,20 @@ void RemoteShellServiceConcurrentClient::recv_GetMemoryInfo(MemoryInfo& _return,
   } // end while(true)
 }
 
-void RemoteShellServiceConcurrentClient::GetDiskInfo(DiskInfo& _return)
+void RemoteShellServiceConcurrentClient::GetDiskInfo(DiskInfo& _return, const std::string& driver)
 {
-  int32_t seqid = send_GetDiskInfo();
+  int32_t seqid = send_GetDiskInfo(driver);
   recv_GetDiskInfo(_return, seqid);
 }
 
-int32_t RemoteShellServiceConcurrentClient::send_GetDiskInfo()
+int32_t RemoteShellServiceConcurrentClient::send_GetDiskInfo(const std::string& driver)
 {
   int32_t cseqid = this->sync_.generateSeqId();
   ::apache::thrift::async::TConcurrentSendSentry sentry(&this->sync_);
   oprot_->writeMessageBegin("GetDiskInfo", ::apache::thrift::protocol::T_CALL, cseqid);
 
   RemoteShellService_GetDiskInfo_pargs args;
+  args.driver = &driver;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();

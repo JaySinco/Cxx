@@ -242,6 +242,12 @@ RemoteShellService_GetMemoryInfo_result.prototype.write = function(output) {
 };
 
 var RemoteShellService_GetDiskInfo_args = function(args) {
+  this.driver = null;
+  if (args) {
+    if (args.driver !== undefined && args.driver !== null) {
+      this.driver = args.driver;
+    }
+  }
 };
 RemoteShellService_GetDiskInfo_args.prototype = {};
 RemoteShellService_GetDiskInfo_args.prototype.read = function(input) {
@@ -249,10 +255,24 @@ RemoteShellService_GetDiskInfo_args.prototype.read = function(input) {
   while (true) {
     var ret = input.readFieldBegin();
     var ftype = ret.ftype;
+    var fid = ret.fid;
     if (ftype == Thrift.Type.STOP) {
       break;
     }
-    input.skip(ftype);
+    switch (fid) {
+      case 1:
+      if (ftype == Thrift.Type.STRING) {
+        this.driver = input.readString();
+      } else {
+        input.skip(ftype);
+      }
+      break;
+      case 0:
+        input.skip(ftype);
+        break;
+      default:
+        input.skip(ftype);
+    }
     input.readFieldEnd();
   }
   input.readStructEnd();
@@ -261,6 +281,11 @@ RemoteShellService_GetDiskInfo_args.prototype.read = function(input) {
 
 RemoteShellService_GetDiskInfo_args.prototype.write = function(output) {
   output.writeStructBegin('RemoteShellService_GetDiskInfo_args');
+  if (this.driver !== null && this.driver !== undefined) {
+    output.writeFieldBegin('driver', Thrift.Type.STRING, 1);
+    output.writeString(this.driver);
+    output.writeFieldEnd();
+  }
   output.writeFieldStop();
   output.writeStructEnd();
   return;
@@ -672,7 +697,7 @@ RemoteShellServiceClient.prototype.recv_GetMemoryInfo = function(input,mtype,rse
   return callback('GetMemoryInfo failed: unknown result');
 };
 
-RemoteShellServiceClient.prototype.GetDiskInfo = function(callback) {
+RemoteShellServiceClient.prototype.GetDiskInfo = function(driver, callback) {
   this._seqid = this.new_seqid();
   if (callback === undefined) {
     var _defer = Q.defer();
@@ -683,17 +708,20 @@ RemoteShellServiceClient.prototype.GetDiskInfo = function(callback) {
         _defer.resolve(result);
       }
     };
-    this.send_GetDiskInfo();
+    this.send_GetDiskInfo(driver);
     return _defer.promise;
   } else {
     this._reqs[this.seqid()] = callback;
-    this.send_GetDiskInfo();
+    this.send_GetDiskInfo(driver);
   }
 };
 
-RemoteShellServiceClient.prototype.send_GetDiskInfo = function() {
+RemoteShellServiceClient.prototype.send_GetDiskInfo = function(driver) {
   var output = new this.pClass(this.output);
-  var args = new RemoteShellService_GetDiskInfo_args();
+  var params = {
+    driver: driver
+  };
+  var args = new RemoteShellService_GetDiskInfo_args(params);
   try {
     output.writeMessageBegin('GetDiskInfo', Thrift.MessageType.CALL, this.seqid());
     args.write(output);
@@ -971,8 +999,9 @@ RemoteShellServiceProcessor.prototype.process_GetDiskInfo = function(seqid, inpu
   var args = new RemoteShellService_GetDiskInfo_args();
   args.read(input);
   input.readMessageEnd();
-  if (this._handler.GetDiskInfo.length === 0) {
-    Q.fcall(this._handler.GetDiskInfo.bind(this._handler)
+  if (this._handler.GetDiskInfo.length === 1) {
+    Q.fcall(this._handler.GetDiskInfo.bind(this._handler),
+      args.driver
     ).then(function(result) {
       var result_obj = new RemoteShellService_GetDiskInfo_result({success: result});
       output.writeMessageBegin("GetDiskInfo", Thrift.MessageType.REPLY, seqid);
@@ -988,7 +1017,7 @@ RemoteShellServiceProcessor.prototype.process_GetDiskInfo = function(seqid, inpu
       output.flush();
     });
   } else {
-    this._handler.GetDiskInfo(function (err, result) {
+    this._handler.GetDiskInfo(args.driver, function (err, result) {
       var result_obj;
       if ((err === null || typeof err === 'undefined')) {
         result_obj = new RemoteShellService_GetDiskInfo_result((err !== null || typeof err === 'undefined') ? err : {success: result});

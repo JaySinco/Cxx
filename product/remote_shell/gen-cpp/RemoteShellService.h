@@ -24,7 +24,7 @@ class RemoteShellServiceIf {
   virtual void GetComputerInfo(ComputerInfo& _return) = 0;
   virtual void GetCpuInfo(CpuInfo& _return) = 0;
   virtual void GetMemoryInfo(MemoryInfo& _return) = 0;
-  virtual void GetDiskInfo(DiskInfo& _return) = 0;
+  virtual void GetDiskInfo(DiskInfo& _return, const std::string& driver) = 0;
   virtual void GetNetworkInfo(NetworkInfo& _return) = 0;
   virtual void Execute(ShellRtn& _return, const std::string& cmdWithArgs) = 0;
 };
@@ -65,7 +65,7 @@ class RemoteShellServiceNull : virtual public RemoteShellServiceIf {
   void GetMemoryInfo(MemoryInfo& /* _return */) {
     return;
   }
-  void GetDiskInfo(DiskInfo& /* _return */) {
+  void GetDiskInfo(DiskInfo& /* _return */, const std::string& /* driver */) {
     return;
   }
   void GetNetworkInfo(NetworkInfo& /* _return */) {
@@ -352,19 +352,30 @@ class RemoteShellService_GetMemoryInfo_presult {
 
 };
 
+typedef struct _RemoteShellService_GetDiskInfo_args__isset {
+  _RemoteShellService_GetDiskInfo_args__isset() : driver(false) {}
+  bool driver :1;
+} _RemoteShellService_GetDiskInfo_args__isset;
 
 class RemoteShellService_GetDiskInfo_args {
  public:
 
   RemoteShellService_GetDiskInfo_args(const RemoteShellService_GetDiskInfo_args&);
   RemoteShellService_GetDiskInfo_args& operator=(const RemoteShellService_GetDiskInfo_args&);
-  RemoteShellService_GetDiskInfo_args() {
+  RemoteShellService_GetDiskInfo_args() : driver() {
   }
 
   virtual ~RemoteShellService_GetDiskInfo_args() throw();
+  std::string driver;
 
-  bool operator == (const RemoteShellService_GetDiskInfo_args & /* rhs */) const
+  _RemoteShellService_GetDiskInfo_args__isset __isset;
+
+  void __set_driver(const std::string& val);
+
+  bool operator == (const RemoteShellService_GetDiskInfo_args & rhs) const
   {
+    if (!(driver == rhs.driver))
+      return false;
     return true;
   }
   bool operator != (const RemoteShellService_GetDiskInfo_args &rhs) const {
@@ -384,6 +395,7 @@ class RemoteShellService_GetDiskInfo_pargs {
 
 
   virtual ~RemoteShellService_GetDiskInfo_pargs() throw();
+  const std::string* driver;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -674,8 +686,8 @@ class RemoteShellServiceClient : virtual public RemoteShellServiceIf {
   void GetMemoryInfo(MemoryInfo& _return);
   void send_GetMemoryInfo();
   void recv_GetMemoryInfo(MemoryInfo& _return);
-  void GetDiskInfo(DiskInfo& _return);
-  void send_GetDiskInfo();
+  void GetDiskInfo(DiskInfo& _return, const std::string& driver);
+  void send_GetDiskInfo(const std::string& driver);
   void recv_GetDiskInfo(DiskInfo& _return);
   void GetNetworkInfo(NetworkInfo& _return);
   void send_GetNetworkInfo();
@@ -771,13 +783,13 @@ class RemoteShellServiceMultiface : virtual public RemoteShellServiceIf {
     return;
   }
 
-  void GetDiskInfo(DiskInfo& _return) {
+  void GetDiskInfo(DiskInfo& _return, const std::string& driver) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->GetDiskInfo(_return);
+      ifaces_[i]->GetDiskInfo(_return, driver);
     }
-    ifaces_[i]->GetDiskInfo(_return);
+    ifaces_[i]->GetDiskInfo(_return, driver);
     return;
   }
 
@@ -840,8 +852,8 @@ class RemoteShellServiceConcurrentClient : virtual public RemoteShellServiceIf {
   void GetMemoryInfo(MemoryInfo& _return);
   int32_t send_GetMemoryInfo();
   void recv_GetMemoryInfo(MemoryInfo& _return, const int32_t seqid);
-  void GetDiskInfo(DiskInfo& _return);
-  int32_t send_GetDiskInfo();
+  void GetDiskInfo(DiskInfo& _return, const std::string& driver);
+  int32_t send_GetDiskInfo(const std::string& driver);
   void recv_GetDiskInfo(DiskInfo& _return, const int32_t seqid);
   void GetNetworkInfo(NetworkInfo& _return);
   int32_t send_GetNetworkInfo();

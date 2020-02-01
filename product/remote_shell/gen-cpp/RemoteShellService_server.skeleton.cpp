@@ -35,7 +35,7 @@ class RemoteShellServiceHandler : virtual public RemoteShellServiceIf {
     printf("GetMemoryInfo\n");
   }
 
-  void GetDiskInfo(DiskInfo& _return) {
+  void GetDiskInfo(DiskInfo& _return, const std::string& driver) {
     // Your implementation goes here
     printf("GetDiskInfo\n");
   }

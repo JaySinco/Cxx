@@ -6,24 +6,24 @@ struct ComputerInfo {
 }
 
 struct CpuInfo {
-    1: double rate  // <1
+    1: double rate  // <100
 }
 
 struct MemoryInfo {
-    1: double total // MB
-    2: double used  // MB
+    1: double total // GB
+    2: double used  // GB
 }
 
 struct DiskInfo {
     1: double total  // GB
     2: double free   // GB
-    3: double readSpeed  // KB/s
-    4: double writeSpeed // KB/s
+    3: double readSpeed  // MB/s
+    4: double writeSpeed // MB/s
 }
 
 struct NetworkInfo {
-    1: double downloadSpeed // KB/s
-    2: double uploadSpeed   // KB/s
+    1: double downloadSpeed // MB/s
+    2: double uploadSpeed   // MB/s
 }
 
 struct ShellRtn {
@@ -35,7 +35,7 @@ service RemoteShellService {
     ComputerInfo GetComputerInfo()
     CpuInfo GetCpuInfo()
     MemoryInfo GetMemoryInfo()
-    DiskInfo GetDiskInfo()
+    DiskInfo GetDiskInfo(1: string driver)
     NetworkInfo GetNetworkInfo()
     ShellRtn Execute(1: string cmdWithArgs)
 }
