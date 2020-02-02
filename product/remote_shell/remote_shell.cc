@@ -10,7 +10,7 @@
 #include <thrift/TToString.h>
 #include <thrift/stdcxx.h>
 #include "common/log/logging.h"
-#include "remote_shell_service.h"
+#include "service.h"
 
 using namespace apache::thrift;
 using namespace apache::thrift::concurrency;

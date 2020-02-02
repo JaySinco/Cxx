@@ -10,7 +10,7 @@ var Thrift = thrift.Thrift;
 var Q = thrift.Q;
 
 
-var ttypes = require('./remote_shell_service_types');
+var ttypes = require('./service_types');
 //HELPER FUNCTIONS AND STRUCTURES
 
 var RemoteShellService_GetComputerInfo_args = function(args) {

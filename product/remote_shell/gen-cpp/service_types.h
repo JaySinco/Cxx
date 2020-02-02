@@ -4,8 +4,8 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-#ifndef remote_shell_service_TYPES_H
-#define remote_shell_service_TYPES_H
+#ifndef service_TYPES_H
+#define service_TYPES_H
 
 #include <iosfwd>
 

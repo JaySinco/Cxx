@@ -4,13 +4,13 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-#include "remote_shell_service_constants.h"
+#include "service_constants.h"
 
 namespace cxx { namespace service {
 
-const remote_shell_serviceConstants g_remote_shell_service_constants;
+const serviceConstants g_service_constants;
 
-remote_shell_serviceConstants::remote_shell_serviceConstants() {
+serviceConstants::serviceConstants() {
 }
 
 }} // namespace

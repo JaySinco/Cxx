@@ -9,7 +9,7 @@
 
 #include <thrift/TDispatchProcessor.h>
 #include <thrift/async/TConcurrentClientSyncInfo.h>
-#include "remote_shell_service_types.h"
+#include "service_types.h"
 
 namespace cxx { namespace service {
 

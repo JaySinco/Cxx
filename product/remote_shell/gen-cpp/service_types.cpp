@@ -4,7 +4,7 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-#include "remote_shell_service_types.h"
+#include "service_types.h"
 
 #include <algorithm>
 #include <ostream>
