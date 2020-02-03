@@ -21,7 +21,12 @@ set(LIB_SRCS
     )
 
 add_library(${MODULE_NAME} ${LIB_SRCS})
-target_link_libraries(${MODULE_NAME} opengl32.lib glog glfw glad)
+target_link_libraries(${MODULE_NAME}
+    opengl32
+    glog
+    glfw
+    glad
+    )
 
 add_executable(opengl_functest opengl_functest.cc)
-target_link_libraries(opengl_functest ${MODULE_NAME} )
+target_link_libraries(opengl_functest ${MODULE_NAME})
