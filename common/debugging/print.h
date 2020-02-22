@@ -11,26 +11,18 @@
 #define TRY_BEGIN \
     try           \
     {
-#define CATCH_ALL                                                \
-    }                                                            \
-    catch (...)                                                  \
-    {                                                            \
-        try                                                      \
-        {                                                        \
-            if (auto eptr = std::current_exception())            \
-            {                                                    \
-                std::rethrow_exception(eptr);                    \
-            }                                                    \
-        }                                                        \
-        catch (const std::exception &e)                          \
-        {                                                        \
-            LOG(ERROR) << "uncaught exception <"                 \
-                       << typeid(e).name() << ">: " << e.what(); \
-        }                                                        \
-        catch (...)                                              \
-        {                                                        \
-            LOG(ERROR) << "uncaught exception <unknow type>";    \
-        }                                                        \
+#define CATCH_ALL                                            \
+    }                                                        \
+    catch (const std::exception &e)                          \
+    {                                                        \
+        LOG(ERROR) << "uncaught exception <"                 \
+                   << typeid(e).name() << ">: " << e.what(); \
+        std::exit(0);                                        \
+    }                                                        \
+    catch (...)                                              \
+    {                                                        \
+        LOG(ERROR) << "uncaught exception <unknow type>";    \
+        std::exit(0);                                        \
     }
 
 template <typename T>
