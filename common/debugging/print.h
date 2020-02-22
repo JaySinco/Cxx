@@ -8,6 +8,31 @@
 #include <pprint/pprint.hpp>
 #pragma clang diagnostic pop
 
+#define TRY_BEGIN \
+    try           \
+    {
+#define CATCH_ALL                                                \
+    }                                                            \
+    catch (...)                                                  \
+    {                                                            \
+        try                                                      \
+        {                                                        \
+            if (auto eptr = std::current_exception())            \
+            {                                                    \
+                std::rethrow_exception(eptr);                    \
+            }                                                    \
+        }                                                        \
+        catch (const std::exception &e)                          \
+        {                                                        \
+            LOG(ERROR) << "uncaught exception <"                 \
+                       << typeid(e).name() << ">: " << e.what(); \
+        }                                                        \
+        catch (...)                                              \
+        {                                                        \
+            LOG(ERROR) << "uncaught exception <unknow type>";    \
+        }                                                        \
+    }
+
 template <typename T>
 std::string TOSTR(T &&Arg)
 {
