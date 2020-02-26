@@ -36,8 +36,8 @@ PATH="${MSVC_PATH};${PATH}"
 pushd "$root_dir"
 mkdir -p dest/ &&\
 pushd dest/ && \
-
-cmake -G "Visual Studio 15 2017 Win64" -T "LLVM" ../ \
+#-T "LLVM"
+cmake -G "Visual Studio 15 2017 Win64"  ../ \
 -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=${current_dir}/bin/ \
 -DMSVC_RUNTIME=dynamic \
 && \

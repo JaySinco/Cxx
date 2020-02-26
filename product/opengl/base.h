@@ -15,9 +15,6 @@ namespace cxx {
 
 namespace gl {
 
-class Base;
-std::ostream &operator<<(std::ostream &out, const Base &base);
-
 class Base {
 public:
     enum TYPE { 
@@ -42,9 +39,8 @@ private:
     const Base &operator=(const Base&);
     TYPE type_;
     std::string id_;
-};
 
-std::ostream &operator<<(std::ostream &out, const Base &base) {
+    friend std::ostream &operator<<(std::ostream &out, const Base &base) {
     switch (base.getType()) {
         case Base::CAMERA  : out << "camera"  ; break;
         case Base::LIGHT   : out << "light"   ; break;
@@ -58,7 +54,10 @@ std::ostream &operator<<(std::ostream &out, const Base &base) {
     }
     out << "[id="  << QUOT(base.getId()) << "]";
     return out;
-}
+    }
+};
+
+
 
 } // namespace gl
 
