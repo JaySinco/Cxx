@@ -41,19 +41,19 @@ private:
     std::string id_;
 
     friend std::ostream &operator<<(std::ostream &out, const Base &base) {
-    switch (base.getType()) {
-        case Base::CAMERA  : out << "camera"  ; break;
-        case Base::LIGHT   : out << "light"   ; break;
-        case Base::MATERIAL: out << "material"; break;
-        case Base::MODEL   : out << "model"   ; break; 
-        case Base::OBJECT  : out << "object"  ; break;
-        case Base::SCENERY : out << "scenery" ; break;
-        case Base::SHADER  : out << "shader"  ; break;
-        case Base::STORAGE : out << "storage" ; break;
-        case Base::TEXTURE : out << "texture" ; break;
-    }
-    out << "[id="  << QUOT(base.getId()) << "]";
-    return out;
+        switch (base.getType()) {
+            case Base::CAMERA  : out << "camera"  ; break;
+            case Base::LIGHT   : out << "light"   ; break;
+            case Base::MATERIAL: out << "material"; break;
+            case Base::MODEL   : out << "model"   ; break;
+            case Base::OBJECT  : out << "object"  ; break;
+            case Base::SCENERY : out << "scenery" ; break;
+            case Base::SHADER  : out << "shader"  ; break;
+            case Base::STORAGE : out << "storage" ; break;
+            case Base::TEXTURE : out << "texture" ; break;
+        }
+        out << "[id="  << QUOT(base.getId()) << "]";
+        return out;
     }
 };
 
