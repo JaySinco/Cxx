@@ -9,6 +9,13 @@ target_link_libraries(testbed
     shlwapi
     )
 
+add_executable(testbed_screen screen.cc)
+target_link_libraries(testbed_screen
+    glog
+    gflags
+    shlwapi
+    )
+
 add_executable(testbed_smtp smtp.cc)
 target_link_libraries(testbed_smtp
     glog
