@@ -30,6 +30,10 @@ set(WINDOWS_DLL_LIST
     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/bin/opencv_world347.dll
     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/bin/opencv_ffmpeg347_64.dll
     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/assimp/bin/assimp-vc141-mt.dll
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/bsoncxx.dll
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/mongocxx.dll
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/libbson-1.0.dll
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/libmongoc-1.0.dll
     ${CMAKE_SOURCE_DIR}/product/gomoku/model/FIR-8x64i3@9336.param
 )
 message(STATUS "Windows dll -> " ${WINDOWS_DLL_LIST})
@@ -48,6 +52,7 @@ list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/curl/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/zlib/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/leveldb/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/glad/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/imgui/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/tinyxml/include/)

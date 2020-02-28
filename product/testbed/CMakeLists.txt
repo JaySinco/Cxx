@@ -52,3 +52,12 @@ target_link_libraries(testbed_curl
     zlib
     tinyxml
     )
+
+add_executable(testbed_mongo mongo.cc)
+target_link_libraries(testbed_mongo
+    glog
+    gflags
+    shlwapi
+    mongocxx
+    bsoncxx
+    )

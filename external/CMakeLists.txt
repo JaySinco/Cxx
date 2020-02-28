@@ -46,6 +46,12 @@ set_target_properties(leveldb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/e
 add_library(boost-atomic STATIC IMPORTED GLOBAL)
 set_target_properties(boost-atomic PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/boost/lib/libboost_atomic-vc141-mt-x64-1_71.lib)
 
+add_library(mongocxx STATIC IMPORTED GLOBAL)
+set_target_properties(mongocxx PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/lib/mongocxx.lib)
+
+add_library(bsoncxx STATIC IMPORTED GLOBAL)
+set_target_properties(bsoncxx PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/lib/bsoncxx.lib)
+
 add_subdirectory(glad)
 add_subdirectory(imgui)
 add_subdirectory(tinyxml)

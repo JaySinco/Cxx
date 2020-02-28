@@ -1,9 +1,6 @@
 #include <windows.h>
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
-#include <gflags/gflags.h>
 #include <thread>
+#include "common/debugging/print.h"
 
 HWND gWindow = NULL;
 HHOOK gMouse = NULL;
@@ -13,7 +10,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 {
     switch (message)
     {
-    case WM_PAINT: {
+    case WM_PAINT:
+    {
         VLOG(1) << "WM_PAINT reviced!";
         HDC hdc;
         PAINTSTRUCT ps;
@@ -46,15 +44,15 @@ HWND CreateScreenWindow(const std::string &color = "#fffaf0", const double alpha
     int width = GetSystemMetrics(SM_CXSCREEN);
     int height = GetSystemMetrics(SM_CYSCREEN);
     HWND win = CreateWindowEx(WS_EX_TOOLWINDOW | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
-                             wc.lpszClassName,      // Window class
-                             TEXT(""),              // Window text
-                             WS_POPUP,              // Window style
-                             // Size and position
-                             0, 0, width/2, height,
-                             NULL,                  // Parent window
-                             NULL,                  // Menu
-                             GetModuleHandle(NULL), // Instance handle
-                             NULL                   // Additional application data
+                              wc.lpszClassName, // Window class
+                              TEXT(""),         // Window text
+                              WS_POPUP,         // Window style
+                              // Size and position
+                              0, 0, width / 2, height,
+                              NULL,                  // Parent window
+                              NULL,                  // Menu
+                              GetModuleHandle(NULL), // Instance handle
+                              NULL                   // Additional application data
     );
     SetLayeredWindowAttributes(win, NULL, BYTE(255 * alpha), LWA_ALPHA);
     return win;
@@ -63,7 +61,7 @@ HWND CreateScreenWindow(const std::string &color = "#fffaf0", const double alpha
 LRESULT CALLBACK MouseProc(INT nCode, WPARAM wParam, LPARAM lParam)
 {
     PMSLLHOOKSTRUCT p = (PMSLLHOOKSTRUCT)lParam;
-    // sendInput发送的消息p->flags为true，不做任何处理   
+    // sendInput发送的消息p->flags为true，不做任何处理
     if (nCode < 0 || p->flags)
     {
         return CallNextHookEx(gMouse, nCode, wParam, lParam);
@@ -106,11 +104,11 @@ void CreateMessageLoop()
     gMouse = SetWindowsHookEx(WH_MOUSE_LL, MouseProc, GetModuleHandle(NULL), 0);
     gKeyboard = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardProc, GetModuleHandle(NULL), 0);
     MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0))       
+    while (GetMessage(&msg, NULL, 0, 0))
     {
-        TranslateMessage (&msg);       
-        DispatchMessage (&msg);
-    } 
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
     UnhookWindowsHookEx(gMouse);
     UnhookWindowsHookEx(gKeyboard);
     DestroyWindow(gWindow);

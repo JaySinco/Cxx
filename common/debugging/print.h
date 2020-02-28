@@ -3,10 +3,12 @@
 #define GOOGLE_GLOG_DLL_DECL
 #include <glog/logging.h>
 #include <gflags/gflags.h>
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wreorder"
+#ifdef CXX_STANDARD_GTE_17
+// #pragma clang diagnostic push
+// #pragma clang diagnostic ignored "-Wreorder"
 #include <pprint/pprint.hpp>
-#pragma clang diagnostic pop
+// #pragma clang diagnostic pop
+#endif
 
 #define TRY_BEGIN \
     try           \
@@ -25,6 +27,7 @@
         std::exit(0);                                        \
     }
 
+#ifdef CXX_STANDARD_GTE_17
 template <typename T>
 std::string TOSTR(T &&Arg)
 {
@@ -33,3 +36,4 @@ std::string TOSTR(T &&Arg)
     printer.print(std::forward<T>(Arg));
     return ss.str();
 }
+#endif

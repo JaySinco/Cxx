@@ -5,6 +5,7 @@
 #include <future>
 #include <functional>
 #include <execution>
+#define CXX_STANDARD_GTE_17
 #include "common/debugging/print.h"
 using namespace std::literals;
 using namespace std::placeholders;
@@ -16,5 +17,7 @@ int main(int argc, char *argv[])
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     FLAGS_logtostderr = 1;
     FLAGS_minloglevel = 0;
+    std::vector<int> ivec{1, 2, 3, 4, 5};
+    LOG(INFO) << TOSTR(ivec);
     CATCH_ALL
 }
