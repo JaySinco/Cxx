@@ -19,5 +19,12 @@ int main(int argc, char *argv[])
     auto admin = client["admin"];
     auto result = admin.run_command(make_document(kvp("isMaster", 1)));
     LOG(INFO) << bsoncxx::to_json(result) << std::endl;
+    auto collection = client["test"]["test"];
+    collection.insert_one(make_document(kvp("hello", "world")));
+    auto cursor = collection.find({});
+    for (auto &doc : cursor)
+    {
+        LOG(INFO) << bsoncxx::to_json(doc) << std::endl;
+    }
     CATCH_ALL
 }

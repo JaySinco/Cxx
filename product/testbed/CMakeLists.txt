@@ -3,6 +3,7 @@ add_custom_target(__target_${MODULE_NAME})
 
 add_executable(testbed testbed.cc)
 set_target_properties (testbed PROPERTIES CXX_STANDARD 17)
+target_compile_options(testbed PUBLIC "/Zc:__cplusplus")
 target_link_libraries(testbed
     glog
     gflags
@@ -60,4 +61,18 @@ target_link_libraries(testbed_mongo
     shlwapi
     mongocxx
     bsoncxx
+    )
+
+set(WINDOWS_DLL_LIST
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/bsoncxx.dll
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/mongocxx.dll
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/libbson-1.0.dll
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/libmongoc-1.0.dll
+    )
+
+add_custom_command(TARGET testbed_mongo
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${WINDOWS_DLL_LIST}
+    $<TARGET_FILE_DIR:testbed_mongo>
     )

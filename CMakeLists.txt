@@ -15,28 +15,11 @@ endif()
 message(STATUS "ABI -> " ${TARGET_ABI})
 message(STATUS "OS -> " ${TARGET_OS})
 
-set(WINDOWS_DLL_LIST
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/openssl/bin/libssl-1_1-x64.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/openssl/bin/libcrypto-1_1-x64.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/libmxnet.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/mkldnn.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/libgfortran-3.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/mklml.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/libopenblas.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/libgcc_s_seh-1.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/libiomp5md.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/libiompstubs5md.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/libquadmath-0.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/bin/opencv_world347.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/bin/opencv_ffmpeg347_64.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/assimp/bin/assimp-vc141-mt.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/bsoncxx.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/mongocxx.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/libbson-1.0.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/libmongoc-1.0.dll
-    ${CMAKE_SOURCE_DIR}/product/gomoku/model/FIR-8x64i3@9336.param
-)
-message(STATUS "Windows dll -> " ${WINDOWS_DLL_LIST})
+# set(WINDOWS_DLL_LIST
+#     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/openssl/bin/libssl-1_1-x64.dll
+#     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/openssl/bin/libcrypto-1_1-x64.dll
+# )
+# message(STATUS "Windows dll -> " ${WINDOWS_DLL_LIST})
 
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR})
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/gflags/include/)
@@ -138,14 +121,14 @@ macro (add_executable)
         message(FATAL_ERROR "missing target: __target_${MODULE_NAME}, current_dir: ${CMAKE_CURRENT_SOURCE_DIR}")
     endif()
 
-    if(MSVC)
-        message(STATUS "Copy dll dependencies to bin directory.")
-        # Copy DLL files to output directory
-        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${WINDOWS_DLL_LIST}
-            $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>)
-    endif()
+    # if(MSVC)
+    #     message(STATUS "Copy dll dependencies to bin directory.")
+    #     # Copy DLL files to output directory
+    #     add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+    #         COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    #         ${WINDOWS_DLL_LIST}
+    #         $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>)
+    # endif()
 
 endmacro()
 

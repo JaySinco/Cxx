@@ -3,7 +3,7 @@
 #define GOOGLE_GLOG_DLL_DECL
 #include <glog/logging.h>
 #include <gflags/gflags.h>
-#ifdef CXX_STANDARD_GTE_17
+#if __cplusplus >= 201703L
 // #pragma clang diagnostic push
 // #pragma clang diagnostic ignored "-Wreorder"
 #include <pprint/pprint.hpp>
@@ -27,7 +27,7 @@
         std::exit(0);                                        \
     }
 
-#ifdef CXX_STANDARD_GTE_17
+#if __cplusplus >= 201703L
 template <typename T>
 std::string TOSTR(T &&Arg)
 {
