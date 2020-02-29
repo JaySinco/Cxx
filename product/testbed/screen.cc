@@ -1,12 +1,14 @@
+#define OEMRESOURCE
 #include <windows.h>
+#include <thread>
 #include "common/debugging/print.h"
 #define RESOURCE(relpath) "D:\\Jaysinco\\Cxx\\product\\testbed\\resources\\"##relpath
 
-// 缺陷：
+// 变通方法:
 // 1. 其他WS_EX_TOPMOST窗口无法隐藏 => select去掉回显窗口
 // 2. CTRL-ALT-DEL无法鼠标HOOK => 注册表可以禁用
-// 3. 鼠标无法隐藏
-// 4. 右键菜单无法隐藏
+// 3. 右键菜单无法隐藏 => 不断置顶窗口
+// 4. 鼠标无法隐藏 => 更换系统鼠标图标
 
 HWND gWindow = NULL;
 HHOOK gMouse = NULL;
@@ -27,7 +29,6 @@ void DrawRectBorder(HDC hdc, int left, int top, int right, int bottom)
 
 void UpdateWindow()
 {
-    ShowCursor(FALSE);
     InvalidateRect(gWindow, NULL, true);
     // 背景
     RECT region;
@@ -123,7 +124,6 @@ HWND CreateScreenWindow(const std::string &color = "#fffaf0", const double alpha
     WNDCLASS wc = {0};
     wc.lpszClassName = TEXT("SCREEN_WINDOW");
     wc.lpfnWndProc = WindowProc;
-    wc.hCursor = LoadCursor(NULL, IDC_HELP);
     DWORD r, g, b;
     sscanf_s(color.c_str(), "#%2X%2X%2X", &r, &g, &b);
     wc.hbrBackground = CreateSolidBrush(RGB(r, g, b));
@@ -212,6 +212,15 @@ LRESULT CALLBACK KeyboardProc(INT nCode, WPARAM wParam, LPARAM lParam)
 void CreateMessageLoop()
 {
     LOG(INFO) << "start message loop...";
+    HCURSOR hOldCursor = CopyCursor(LoadCursor(NULL, IDC_ARROW));
+    HCURSOR hCursor = LoadCursorFromFile(TEXT(RESOURCE("fake.cur")));
+    if (hCursor == NULL)
+    {
+        LOG(ERROR) << "failed to load cursor, errno=" << GetLastError();
+        std::exit(0);
+    }
+    SetSystemCursor(hCursor, OCR_NORMAL);
+    DestroyCursor(hCursor);
     gWindow = CreateScreenWindow("#000000", -1);
     UpdateWindow();
     gMouse = SetWindowsHookEx(WH_MOUSE_LL, MouseProc, GetModuleHandle(NULL), 0);
@@ -225,6 +234,8 @@ void CreateMessageLoop()
     UnhookWindowsHookEx(gMouse);
     UnhookWindowsHookEx(gKeyboard);
     DestroyWindow(gWindow);
+    SetSystemCursor(hOldCursor, OCR_NORMAL);
+    DestroyCursor(hOldCursor);
     LOG(INFO) << "message loop end!";
 }
 
@@ -234,5 +245,12 @@ int main(int argc, char *argv[])
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     FLAGS_logtostderr = 1;
     FLAGS_minloglevel = 0;
+    std::thread([] {
+        while (true)
+        {
+            BringWindowToTop(gWindow);
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+    }).detach();
     CreateMessageLoop();
 }
