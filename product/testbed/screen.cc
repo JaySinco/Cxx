@@ -213,7 +213,7 @@ void CreateMessageLoop()
 {
     LOG(INFO) << "start message loop...";
     HCURSOR hOldCursor = CopyCursor(LoadCursor(NULL, IDC_ARROW));
-    HCURSOR hCursor = LoadCursorFromFile(TEXT(RESOURCE("fake.cur")));
+    HCURSOR hCursor = LoadCursorFromFile(TEXT(RESOURCE("point.cur")));
     if (hCursor == NULL)
     {
         LOG(ERROR) << "failed to load cursor, errno=" << GetLastError();
