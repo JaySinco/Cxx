@@ -1,59 +1,173 @@
 #define OEMRESOURCE
 #include <windows.h>
+#include <atomic>
+#include <future>
+#include <map>
 #include <thread>
 #include "common/debugging/print.h"
 #define RESOURCE(relpath) "D:\\Jaysinco\\Cxx\\product\\testbed\\resources\\"##relpath
-
+#define LOG_LAST_ERROR(msg) LOG(ERROR) << msg << ", errno=" << GetLastError()
 // 变通方法:
 // 1. 其他WS_EX_TOPMOST窗口无法隐藏 => select去掉回显窗口
 // 2. CTRL-ALT-DEL无法鼠标HOOK => 注册表可以禁用
 // 3. 右键菜单无法隐藏 => 不断置顶窗口
 // 4. 鼠标无法隐藏 => 更换系统鼠标图标
 
-HWND gWindow = NULL;
-HHOOK gMouse = NULL;
-HHOOK gKeyboard = NULL;
-const int gWidth = GetSystemMetrics(SM_CXSCREEN);
-const int gHeight = GetSystemMetrics(SM_CYSCREEN);
-std::string gPassword;
-std::string gStoredPwd = "JAYSINCO";
-
-void DrawRectBorder(HDC hdc, int left, int top, int right, int bottom)
+class AntiViewScreen
 {
-    MoveToEx(hdc, left, top, NULL);
-    LineTo(hdc, right, top);
-    LineTo(hdc, right, bottom);
-    LineTo(hdc, left, bottom);
-    LineTo(hdc, left, top);
+public:
+    static void Lock(
+        const std::string &password = "",
+        bool blockMouseInput = true,
+        bool blockKeyboardInput = true);
+
+private:
+    class ReplaceSystemCursor
+    {
+    public:
+        ReplaceSystemCursor(const std::string &iconFile);
+        ~ReplaceSystemCursor();
+
+    private:
+        std::map<int, HCURSOR> oldSystemCursor;
+    };
+
+    static void initScreen();
+    static void updateScreen();
+    static void DrawRectBorder(HDC hdc, int left, int top, int right, int bottom);
+    static LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+    static LRESULT CALLBACK mouseProc(INT nCode, WPARAM wParam, LPARAM lParam);
+    static LRESULT CALLBACK keyboardProc(INT nCode, WPARAM wParam, LPARAM lParam);
+
+    static HWND hwnd;
+    static bool blockMouse;
+    static bool blockKeyboard;
+    static HHOOK mouseHook;
+    static HHOOK keyboardHook;
+    static std::atomic<bool> done;
+    static int screenWidth;
+    static int screenHeight;
+    static std::string inputPwd;
+    static std::string unlockCode;
+};
+
+HWND AntiViewScreen::hwnd;
+bool AntiViewScreen::blockMouse;
+bool AntiViewScreen::blockKeyboard;
+HHOOK AntiViewScreen::mouseHook;
+HHOOK AntiViewScreen::keyboardHook;
+std::atomic<bool> AntiViewScreen::done;
+int AntiViewScreen::screenWidth;
+int AntiViewScreen::screenHeight;
+std::string AntiViewScreen::inputPwd;
+std::string AntiViewScreen::unlockCode;
+
+void AntiViewScreen::Lock(
+    const std::string &password,
+    bool blockMouseInput,
+    bool blockKeyboardInput)
+{
+    done = false;
+    unlockCode = password;
+    inputPwd.clear();
+    blockMouse = blockMouseInput;
+    blockKeyboard = blockKeyboardInput;
+    LOG(INFO) << "lock anti-view screen...";
+    ReplaceSystemCursor cursorGuard(RESOURCE("point.cur"));
+    initScreen();
+    mouseHook = SetWindowsHookEx(WH_MOUSE_LL, mouseProc, GetModuleHandle(NULL), 0);
+    if (mouseHook == NULL)
+    {
+        LOG_LAST_ERROR("failed to set mouse hook");
+    }
+    keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboardProc, GetModuleHandle(NULL), 0);
+    if (keyboardHook == NULL)
+    {
+        LOG_LAST_ERROR("failed to set keyboard hook");
+    }
+    updateScreen();
+    auto background = std::async(std::launch::async, [] {
+        while (!done)
+        {
+            BringWindowToTop(hwnd);
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+        LOG(INFO) << "background task stopped!";
+    });
+    MSG msg;
+    while (GetMessage(&msg, NULL, 0, 0))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+    done = true;
+    if (!UnhookWindowsHookEx(mouseHook))
+    {
+        LOG_LAST_ERROR("failed to unset mouse hook");
+    }
+    if (!UnhookWindowsHookEx(keyboardHook))
+    {
+        LOG_LAST_ERROR("failed to unset keyboard hook");
+    }
+    DestroyWindow(hwnd);
+    background.wait();
+    LOG(INFO) << "unlock anti-view screen!";
 }
 
-void UpdateWindow()
+void AntiViewScreen::initScreen()
 {
-    InvalidateRect(gWindow, NULL, true);
+    screenWidth = GetSystemMetrics(SM_CXSCREEN);
+    screenHeight = GetSystemMetrics(SM_CYSCREEN);
+    WNDCLASS wc = {0};
+    wc.lpszClassName = TEXT("AntiViewScreen");
+    wc.lpfnWndProc = windowProc;
+    DWORD r, g, b;
+    sscanf_s("#fffaf0", "#%2X%2X%2X", &r, &g, &b);
+    wc.hbrBackground = CreateSolidBrush(RGB(r, g, b));
+    UnregisterClass(wc.lpszClassName, GetModuleHandle(NULL));
+    RegisterClass(&wc);
+
+    hwnd = CreateWindowEx(
+        WS_EX_TOOLWINDOW | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
+        wc.lpszClassName, // Window class
+        TEXT(""),         // Window text
+        WS_POPUP,         // Window style
+        // Size and position
+        0, 0, screenWidth, screenHeight,
+        NULL,                  // Parent window
+        NULL,                  // Menu
+        GetModuleHandle(NULL), // Instance handle
+        NULL                   // Additional application data
+    );
+    // SetLayeredWindowAttributes(hwnd, NULL, BYTE(255 * alpha), LWA_ALPHA);
+}
+
+void AntiViewScreen::updateScreen()
+{
+    InvalidateRect(hwnd, NULL, true);
     // 背景
     RECT region;
-    GetClientRect(gWindow, &region);
+    GetClientRect(hwnd, &region);
     SIZE area = {region.right - region.left, region.bottom - region.top};
-    HDC hdc = GetDC(gWindow);
+    HDC hdc = GetDC(hwnd);
     HDC hBitmapDC = CreateCompatibleDC(hdc);
     HBITMAP hBitmap = (HBITMAP)LoadImage(
         NULL, TEXT(RESOURCE("background.bmp")),
-        IMAGE_BITMAP, gWidth, gHeight,
+        IMAGE_BITMAP, screenWidth, screenHeight,
         LR_DEFAULTCOLOR | LR_CREATEDIBSECTION | LR_LOADFROMFILE);
     if (hBitmap == NULL)
     {
-        LOG(ERROR) << "failed to load bitmap, errno=" << GetLastError();
-        std::exit(0);
+        LOG_LAST_ERROR("failed to load bitmap");
     }
     SelectObject(hBitmapDC, hBitmap);
     // 绘图
-    const int fontHeight = gWidth / 42;
+    const int fontHeight = screenWidth / 42;
     HFONT hFont = CreateFontW(
         fontHeight,            // height
         0,                     // width
         0,                     // escapenment,
         0,                     // orientation,
-        0,                     // weight,
+        600,                   // weight,
         FALSE,                 // italic,
         FALSE,                 // underline,
         FALSE,                 // strikeOut,
@@ -66,22 +180,22 @@ void UpdateWindow()
     );
     COLORREF color = RGB(9, 163, 153);
     HFONT hOldFont = (HFONT)SelectObject(hBitmapDC, hFont);
-    const int penWidth = 3;
+    const int penWidth = 5;
     HPEN hPen = CreatePen(PS_SOLID, penWidth, RGB(0, 0, 0));
     HPEN hOldPen = (HPEN)SelectObject(hBitmapDC, hPen);
     HBRUSH hBrush = CreateSolidBrush(color);
     HBRUSH hOldBrush = (HBRUSH)SelectObject(hBitmapDC, hBrush);
     DrawRectBorder(
         hBitmapDC,
-        int(gWidth / 2.5),
-        gHeight / 2 - penWidth,
-        int(gWidth / 1.5),
-        gHeight / 2 + fontHeight + penWidth / 2);
+        int(screenWidth / 2.5),
+        screenHeight / 2 - penWidth,
+        int(screenWidth / 1.5),
+        screenHeight / 2 + fontHeight + penWidth / 2);
     std::wstring context = L"请输入密码: ";
     SetBkColor(hBitmapDC, color);
-    TextOutW(hBitmapDC, gWidth / 4, gHeight / 2, context.c_str(), int(context.size()));
-    TextOutA(hBitmapDC, int(gWidth / 2.5) + penWidth, gHeight / 2,
-             gPassword.c_str(), int(gPassword.size()));
+    TextOutW(hBitmapDC, screenWidth / 4, screenHeight / 2, context.c_str(), int(context.size()));
+    TextOutA(hBitmapDC, int(screenWidth / 2.5) + penWidth, screenHeight / 2,
+             inputPwd.c_str(), int(inputPwd.size()));
     SelectObject(hBitmapDC, hOldBrush);
     SelectObject(hBitmapDC, hOldPen);
     SelectObject(hBitmapDC, hOldFont);
@@ -95,20 +209,28 @@ void UpdateWindow()
     bf.BlendFlags = 0;
     bf.SourceConstantAlpha = 255;
     POINT pt = {0, 0};
-    UpdateLayeredWindow(gWindow, hdc, NULL, &area, hBitmapDC, &pt, 0, &bf, ULW_ALPHA);
+    UpdateLayeredWindow(hwnd, hdc, NULL, &area, hBitmapDC, &pt, 0, &bf, ULW_ALPHA);
     DeleteObject(hBitmap);
     DeleteDC(hBitmapDC);
-    ReleaseDC(gWindow, hdc);
-    ShowWindow(gWindow, SW_SHOW);
+    ReleaseDC(hwnd, hdc);
+    ShowWindow(hwnd, SW_SHOW);
 }
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+void AntiViewScreen::DrawRectBorder(HDC hdc, int left, int top, int right, int bottom)
+{
+    MoveToEx(hdc, left, top, NULL);
+    LineTo(hdc, right, top);
+    LineTo(hdc, right, bottom);
+    LineTo(hdc, left, bottom);
+    LineTo(hdc, left, top);
+}
+
+LRESULT CALLBACK AntiViewScreen::windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
     case WM_PAINT:
     {
-        VLOG(1) << "WM_PAINT reviced!";
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
         EndPaint(hwnd, &ps);
@@ -119,124 +241,119 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
     return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
-HWND CreateScreenWindow(const std::string &color = "#fffaf0", const double alpha = 0.8)
-{
-    WNDCLASS wc = {0};
-    wc.lpszClassName = TEXT("SCREEN_WINDOW");
-    wc.lpfnWndProc = WindowProc;
-    DWORD r, g, b;
-    sscanf_s(color.c_str(), "#%2X%2X%2X", &r, &g, &b);
-    wc.hbrBackground = CreateSolidBrush(RGB(r, g, b));
-    UnregisterClass(wc.lpszClassName, GetModuleHandle(NULL));
-    RegisterClass(&wc);
-
-    HWND win = CreateWindowEx(
-        WS_EX_TOOLWINDOW | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
-        wc.lpszClassName, // Window class
-        TEXT(""),         // Window text
-        WS_POPUP,         // Window style
-        // Size and position
-        0, 0, gWidth, gHeight,
-        NULL,                  // Parent window
-        NULL,                  // Menu
-        GetModuleHandle(NULL), // Instance handle
-        NULL                   // Additional application data
-    );
-    if (alpha >= 0)
-    {
-        SetLayeredWindowAttributes(win, NULL, BYTE(255 * alpha), LWA_ALPHA);
-    }
-    return win;
-}
-
-LRESULT CALLBACK MouseProc(INT nCode, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK AntiViewScreen::mouseProc(INT nCode, WPARAM wParam, LPARAM lParam)
 {
     PMSLLHOOKSTRUCT p = (PMSLLHOOKSTRUCT)lParam;
-    // SendInput发送的消息p->flags为true，不做任何处理
+    // don't intercept when p->flags=true
     if (nCode < 0 || p->flags)
     {
-        return CallNextHookEx(gMouse, nCode, wParam, lParam);
+        return CallNextHookEx(mouseHook, nCode, wParam, lParam);
     }
     VLOG(1) << "mouse: x=" << p->pt.x << ", y=" << p->pt.y;
     // if (wParam == WM_MOUSEMOVE || wParam == WM_LBUTTONUP || wParam == WM_RBUTTONUP)
     // {
     // }
-    return 1;
+    return blockMouse ? 1 : 0;
 }
 
-LRESULT CALLBACK KeyboardProc(INT nCode, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK AntiViewScreen::keyboardProc(INT nCode, WPARAM wParam, LPARAM lParam)
 {
     PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT)lParam;
+    // don't intercept when p->flags=true
     if (nCode < 0 || p->flags)
     {
-        return CallNextHookEx(gKeyboard, nCode, wParam, lParam);
+        return CallNextHookEx(keyboardHook, nCode, wParam, lParam);
     }
     VLOG(1) << "keyboard: vk=" << p->vkCode << ", scan=" << p->scanCode;
     if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
     {
         switch (p->vkCode)
         {
-        case VK_ESCAPE:
-            PostMessage(gWindow, WM_QUIT, 0, NULL);
-            break;
         case VK_BACK:
-            if (gPassword.size() > 0)
+            if (inputPwd.size() > 0)
             {
-                gPassword.pop_back();
-                UpdateWindow();
+                inputPwd.pop_back();
+                updateScreen();
             }
             break;
         case VK_RETURN:
-            if (gPassword == gStoredPwd)
+            if (inputPwd == unlockCode)
             {
-                PostMessage(gWindow, WM_QUIT, 0, NULL);
+                PostMessage(hwnd, WM_QUIT, 0, NULL);
             }
             else
             {
-                gPassword.clear();
-                UpdateWindow();
+                inputPwd.clear();
+                updateScreen();
             }
             break;
         default:
             if (char c = MapVirtualKeyA(p->vkCode, MAPVK_VK_TO_CHAR))
             {
-                gPassword += c;
-                UpdateWindow();
+                inputPwd += c;
+                updateScreen();
             }
             break;
         }
     }
-    return 1;
+    return blockKeyboard ? 1 : 0;
 }
 
-void CreateMessageLoop()
+AntiViewScreen::ReplaceSystemCursor::ReplaceSystemCursor(const std::string &iconFile)
 {
-    LOG(INFO) << "start message loop...";
-    HCURSOR hOldCursor = CopyCursor(LoadCursor(NULL, IDC_ARROW));
-    HCURSOR hCursor = LoadCursorFromFile(TEXT(RESOURCE("point.cur")));
-    if (hCursor == NULL)
+    HCURSOR hUserCursor = LoadCursorFromFileA(iconFile.c_str());
+    if (hUserCursor == NULL)
     {
-        LOG(ERROR) << "failed to load cursor, errno=" << GetLastError();
-        std::exit(0);
+        LOG_LAST_ERROR("failed to load cursor, path=" << iconFile);
+        return;
     }
-    SetSystemCursor(hCursor, OCR_NORMAL);
-    DestroyCursor(hCursor);
-    gWindow = CreateScreenWindow("#000000", -1);
-    UpdateWindow();
-    gMouse = SetWindowsHookEx(WH_MOUSE_LL, MouseProc, GetModuleHandle(NULL), 0);
-    gKeyboard = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardProc, GetModuleHandle(NULL), 0);
-    MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0))
+    int allCursorId[] = {
+        OCR_APPSTARTING,
+        OCR_NORMAL,
+        OCR_CROSS,
+        OCR_HAND,
+        OCR_IBEAM,
+        OCR_NO,
+        OCR_SIZEALL,
+        OCR_SIZENESW,
+        OCR_SIZENS,
+        OCR_SIZENWSE,
+        OCR_SIZEWE,
+        OCR_UP,
+        OCR_WAIT,
+    };
+    for (auto id : allCursorId)
     {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        HCURSOR hOldCursor = CopyCursor(LoadCursor(NULL, MAKEINTRESOURCE(id)));
+        if (hOldCursor == NULL)
+        {
+            LOG_LAST_ERROR("failed to copy cursor, id=" << id);
+            continue;
+        }
+        if (SetSystemCursor(CopyCursor(hUserCursor), id))
+        {
+            oldSystemCursor[id] = hOldCursor;
+        }
+        else
+        {
+            LOG_LAST_ERROR("failed to replace system cursor, id=" << id);
+        }
     }
-    UnhookWindowsHookEx(gMouse);
-    UnhookWindowsHookEx(gKeyboard);
-    DestroyWindow(gWindow);
-    SetSystemCursor(hOldCursor, OCR_NORMAL);
-    DestroyCursor(hOldCursor);
-    LOG(INFO) << "message loop end!";
+    if (!DestroyCursor(hUserCursor))
+    {
+        LOG_LAST_ERROR("failed to destroy user cursor");
+    }
+}
+
+AntiViewScreen::ReplaceSystemCursor::~ReplaceSystemCursor()
+{
+    for (const auto &it : oldSystemCursor)
+    {
+        if (!SetSystemCursor(it.second, it.first))
+        {
+            LOG_LAST_ERROR("failed to restore system cursor, id=" << it.first);
+        }
+    }
 }
 
 int main(int argc, char *argv[])
@@ -245,12 +362,9 @@ int main(int argc, char *argv[])
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     FLAGS_logtostderr = 1;
     FLAGS_minloglevel = 0;
-    std::thread([] {
-        while (true)
-        {
-            BringWindowToTop(gWindow);
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        }
-    }).detach();
-    CreateMessageLoop();
+    if (!SetProcessDPIAware())
+    {
+        LOG_LAST_ERROR("failed to set process dpi aware");
+    }
+    AntiViewScreen::Lock("", false, false);
 }
