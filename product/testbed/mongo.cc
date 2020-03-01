@@ -1,3 +1,5 @@
+#define BSONCXX_STATIC
+#define MONGOCXX_STATIC
 #include <bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/json.hpp>
 #include <mongocxx/client.hpp>

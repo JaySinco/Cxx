@@ -41,9 +41,9 @@ target_link_libraries(testbed_imgui
 
 add_executable(testbed_curl curl.cc)
 target_link_libraries(testbed_curl
-    Ws2_32
+    ws2_32
     wldap32
-    Normaliz 
+    normaliz
     glog
     gflags
     shlwapi
@@ -59,20 +59,13 @@ target_link_libraries(testbed_mongo
     glog
     gflags
     shlwapi
+    mongoc
+    bson
     mongocxx
     bsoncxx
-    )
-
-set(WINDOWS_DLL_LIST
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/bsoncxx.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/mongocxx.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/libbson-1.0.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/bin/libmongoc-1.0.dll
-    )
-
-add_custom_command(TARGET testbed_mongo
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${WINDOWS_DLL_LIST}
-    $<TARGET_FILE_DIR:testbed_mongo>
+    ws2_32
+    secur32
+    crypt32
+    bcrypt
+    dnsapi
     )

@@ -5,7 +5,6 @@
 #include <future>
 #include <functional>
 #include <execution>
-#define CXX_STANDARD_GTE_17
 #include "common/debugging/print.h"
 using namespace std::literals;
 using namespace std::placeholders;

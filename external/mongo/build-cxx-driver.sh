@@ -7,6 +7,7 @@ mkdir -p cmake-build
 cd cmake-build
 cmake -G "Visual Studio 15 2017 Win64" -T "host=x64"  ../ \
 -DCMAKE_CXX_STANDARD=11 \
+-DBUILD_SHARED_LIBS=OFF \
 -DCMAKE_CXX_FLAGS="/Zc:__cplusplus" \
 -DCMAKE_INSTALL_PREFIX="./mongo-cxx-driver" \
 -DCMAKE_PREFIX_PATH=`readlink -f ../../mongo-c-driver-1.13.0/cmake-build/mongo-c-driver/` \

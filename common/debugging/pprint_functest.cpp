@@ -4,7 +4,6 @@
 #include <map>
 #include <set>
 #include <queue>
-#define CXX_STANDARD_GTE_17
 #include "print.h"
 
 enum Level
