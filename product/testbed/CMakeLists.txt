@@ -10,15 +10,8 @@ target_link_libraries(testbed
     shlwapi
     )
 
-add_executable(testbed_screen screen.cc)
-target_link_libraries(testbed_screen
-    glog
-    gflags
-    shlwapi
-    )
-
-add_executable(testbed_smtp smtp.cc)
-target_link_libraries(testbed_smtp
+add_executable(socket_t socket.cc)
+target_link_libraries(socket_t
     glog
     gflags
     shlwapi
@@ -28,8 +21,8 @@ target_link_libraries(testbed_smtp
     ws2_32
     )
 
-add_executable(testbed_imgui imgui.cc)
-target_link_libraries(testbed_imgui
+add_executable(imgui_t imgui.cc)
+target_link_libraries(imgui_t
     glog
     gflags
     shlwapi
@@ -39,8 +32,8 @@ target_link_libraries(testbed_imgui
     opengl32
     )
 
-add_executable(testbed_curl curl.cc)
-target_link_libraries(testbed_curl
+add_executable(http_t http.cc)
+target_link_libraries(http_t
     ws2_32
     wldap32
     normaliz
@@ -54,8 +47,8 @@ target_link_libraries(testbed_curl
     tinyxml
     )
 
-add_executable(testbed_mongo mongo.cc)
-target_link_libraries(testbed_mongo
+add_executable(mongo_t mongo.cc)
+target_link_libraries(mongo_t
     glog
     gflags
     shlwapi

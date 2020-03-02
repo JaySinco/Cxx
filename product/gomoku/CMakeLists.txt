@@ -17,7 +17,7 @@ set(LIB_SRCS
 add_executable(gomoku ${LIB_SRCS})
 target_link_libraries(gomoku libmxnet)
 
-set(WINDOWS_DLL_LIST
+set(COPY_FILE_LIST
     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/libmxnet.dll
     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/mkldnn.dll
     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/libgfortran-3.dll
@@ -33,6 +33,6 @@ set(WINDOWS_DLL_LIST
 add_custom_command(TARGET gomoku
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${WINDOWS_DLL_LIST}
+    ${COPY_FILE_LIST}
     $<TARGET_FILE_DIR:gomoku>
     )

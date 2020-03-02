@@ -1,75 +1,25 @@
-#define OEMRESOURCE
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <atomic>
+#include "screen_locker.h"
 #include <future>
-#include <map>
 #include <thread>
-#include <codecvt>
-#include "common/debugging/print.h"
+#define GLOG_NO_ABBREVIATED_SEVERITIES
+#define GOOGLE_GLOG_DLL_DECL
+#include <glog/logging.h>
 
-#define LOG_LAST_ERROR(msg) LOG(ERROR) << msg << ", errno=" << GetLastError()
+HWND ScreenLocker::hwnd;
+bool ScreenLocker::blockMouse;
+bool ScreenLocker::blockKeyboard;
+HHOOK ScreenLocker::mouseHook;
+HHOOK ScreenLocker::keyboardHook;
+std::atomic<bool> ScreenLocker::done;
+int ScreenLocker::screenWidth;
+int ScreenLocker::screenHeight;
+std::string ScreenLocker::inputPwd;
+std::string ScreenLocker::unlockCode;
+std::wstring ScreenLocker::hintWord;
+std::wstring ScreenLocker::curFile;
+std::wstring ScreenLocker::backgroundFile;
 
-class AntiViewScreen
-{
-public:
-    static void Lock(
-        const std::string &password_ascii,
-        const std::string &hintWord_u8,
-        const std::string &backgroundFile_u8,
-        const std::string &cursorFile_u8,
-        bool blockMouseInput = false,
-        bool blockKeyboardInput = false);
-
-private:
-    class ReplaceSystemCursor
-    {
-    public:
-        ReplaceSystemCursor(const std::wstring &iconFile);
-        ~ReplaceSystemCursor();
-
-    private:
-        std::map<int, HCURSOR> oldSystemCursor;
-    };
-
-    static void initScreen();
-    static void updateScreen();
-    static std::wstring utf8ToWstring(const std::string &str_u8);
-    static void drawRectBorder(HDC hdc, int left, int top, int right, int bottom);
-    static LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-    static LRESULT CALLBACK mouseProc(INT nCode, WPARAM wParam, LPARAM lParam);
-    static LRESULT CALLBACK keyboardProc(INT nCode, WPARAM wParam, LPARAM lParam);
-
-    static HWND hwnd;
-    static bool blockMouse;
-    static bool blockKeyboard;
-    static HHOOK mouseHook;
-    static HHOOK keyboardHook;
-    static std::atomic<bool> done;
-    static int screenWidth;
-    static int screenHeight;
-    static std::string inputPwd;
-    static std::string unlockCode;
-    static std::wstring curFile;
-    static std::wstring backgroundFile;
-    static std::wstring hintWord;
-};
-
-HWND AntiViewScreen::hwnd;
-bool AntiViewScreen::blockMouse;
-bool AntiViewScreen::blockKeyboard;
-HHOOK AntiViewScreen::mouseHook;
-HHOOK AntiViewScreen::keyboardHook;
-std::atomic<bool> AntiViewScreen::done;
-int AntiViewScreen::screenWidth;
-int AntiViewScreen::screenHeight;
-std::string AntiViewScreen::inputPwd;
-std::string AntiViewScreen::unlockCode;
-std::wstring AntiViewScreen::hintWord;
-std::wstring AntiViewScreen::curFile;
-std::wstring AntiViewScreen::backgroundFile;
-
-void AntiViewScreen::Lock(
+void ScreenLocker::Popup(
     const std::string &password_ascii,
     const std::string &hintWord_u8,
     const std::string &backgroundFile_u8,
@@ -78,9 +28,6 @@ void AntiViewScreen::Lock(
     bool blockKeyboardInput)
 {
     LOG(INFO) << "lock anti-view screen...";
-    LOG(INFO) << "hint=" << hintWord_u8;
-    LOG(INFO) << "background=" << backgroundFile_u8;
-    LOG(INFO) << "cursor=" << cursorFile_u8;
     done = false;
     unlockCode = password_ascii;
     inputPwd.clear();
@@ -89,6 +36,9 @@ void AntiViewScreen::Lock(
     hintWord = utf8ToWstring(hintWord_u8);
     backgroundFile = utf8ToWstring(backgroundFile_u8);
     curFile = utf8ToWstring(cursorFile_u8);
+    LOG(INFO) << "hint=" << hintWord;
+    LOG(INFO) << "background=" << backgroundFile;
+    LOG(INFO) << "cursor=" << curFile;
     ReplaceSystemCursor cursorGuard(curFile);
     initScreen();
     mouseHook = SetWindowsHookEx(WH_MOUSE_LL, mouseProc, GetModuleHandle(NULL), 0);
@@ -130,12 +80,12 @@ void AntiViewScreen::Lock(
     LOG(INFO) << "unlock anti-view screen!";
 }
 
-void AntiViewScreen::initScreen()
+void ScreenLocker::initScreen()
 {
     screenWidth = GetSystemMetrics(SM_CXSCREEN);
     screenHeight = GetSystemMetrics(SM_CYSCREEN);
     WNDCLASS wc = {0};
-    wc.lpszClassName = TEXT("AntiViewScreen");
+    wc.lpszClassName = TEXT("ScreenLocker");
     wc.lpfnWndProc = windowProc;
     DWORD r, g, b;
     sscanf_s("#fffaf0", "#%2X%2X%2X", &r, &g, &b);
@@ -158,7 +108,7 @@ void AntiViewScreen::initScreen()
     // SetLayeredWindowAttributes(hwnd, NULL, BYTE(255 * alpha), LWA_ALPHA);
 }
 
-void AntiViewScreen::updateScreen()
+void ScreenLocker::updateScreen()
 {
     InvalidateRect(hwnd, NULL, true);
     // 背景
@@ -231,13 +181,7 @@ void AntiViewScreen::updateScreen()
     ShowWindow(hwnd, SW_SHOW);
 }
 
-std::wstring AntiViewScreen::utf8ToWstring(const std::string &str_u8)
-{
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> strCnv;
-    return strCnv.from_bytes(str_u8);
-}
-
-void AntiViewScreen::drawRectBorder(HDC hdc, int left, int top, int right, int bottom)
+void ScreenLocker::drawRectBorder(HDC hdc, int left, int top, int right, int bottom)
 {
     MoveToEx(hdc, left, top, NULL);
     LineTo(hdc, right, top);
@@ -246,7 +190,7 @@ void AntiViewScreen::drawRectBorder(HDC hdc, int left, int top, int right, int b
     LineTo(hdc, left, top);
 }
 
-LRESULT CALLBACK AntiViewScreen::windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK ScreenLocker::windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
@@ -262,7 +206,7 @@ LRESULT CALLBACK AntiViewScreen::windowProc(HWND hwnd, UINT message, WPARAM wPar
     return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
-LRESULT CALLBACK AntiViewScreen::mouseProc(INT nCode, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK ScreenLocker::mouseProc(INT nCode, WPARAM wParam, LPARAM lParam)
 {
     PMSLLHOOKSTRUCT p = (PMSLLHOOKSTRUCT)lParam;
     // don't intercept when p->flags=true
@@ -277,7 +221,7 @@ LRESULT CALLBACK AntiViewScreen::mouseProc(INT nCode, WPARAM wParam, LPARAM lPar
     return blockMouse ? 1 : 0;
 }
 
-LRESULT CALLBACK AntiViewScreen::keyboardProc(INT nCode, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK ScreenLocker::keyboardProc(INT nCode, WPARAM wParam, LPARAM lParam)
 {
     PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT)lParam;
     // don't intercept when p->flags=true
@@ -320,7 +264,7 @@ LRESULT CALLBACK AntiViewScreen::keyboardProc(INT nCode, WPARAM wParam, LPARAM l
     return blockKeyboard ? 1 : 0;
 }
 
-AntiViewScreen::ReplaceSystemCursor::ReplaceSystemCursor(const std::wstring &iconFile)
+ScreenLocker::ReplaceSystemCursor::ReplaceSystemCursor(const std::wstring &iconFile)
 {
     HCURSOR hUserCursor = LoadCursorFromFileW(iconFile.c_str());
     if (hUserCursor == NULL)
@@ -366,7 +310,7 @@ AntiViewScreen::ReplaceSystemCursor::ReplaceSystemCursor(const std::wstring &ico
     }
 }
 
-AntiViewScreen::ReplaceSystemCursor::~ReplaceSystemCursor()
+ScreenLocker::ReplaceSystemCursor::~ReplaceSystemCursor()
 {
     for (const auto &it : oldSystemCursor)
     {
@@ -375,23 +319,4 @@ AntiViewScreen::ReplaceSystemCursor::~ReplaceSystemCursor()
             LOG_LAST_ERROR("failed to restore system cursor, id=" << it.first);
         }
     }
-}
-
-int main(int argc, char *argv[])
-{
-    google::InitGoogleLogging(argv[0]);
-    gflags::ParseCommandLineFlags(&argc, &argv, true);
-    FLAGS_logtostderr = 1;
-    FLAGS_minloglevel = 0;
-    if (!SetProcessDPIAware())
-    {
-        LOG_LAST_ERROR("failed to set process dpi aware");
-    }
-    AntiViewScreen::Lock(
-        "",
-        u8"请输入密码: ",
-        u8"D:\\Jaysinco\\Cxx\\product\\testbed\\resources\\background.bmp",
-        u8"D:\\Jaysinco\\Cxx\\product\\testbed\\resources\\point.cur",
-        false,
-        false);
 }

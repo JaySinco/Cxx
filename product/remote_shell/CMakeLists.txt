@@ -24,7 +24,3 @@ target_link_libraries(${MODULE_NAME}
 add_executable(remote_shell remote_shell.cc)
 # target_compile_options(remote_shell PUBLIC "-Wno-#pragma-messages")
 target_link_libraries(remote_shell ${MODULE_NAME})
-
-add_dependencies(__target_${MODULE_NAME} 
-    ${SUBDIRECTORY_TARGETS}
-    )
