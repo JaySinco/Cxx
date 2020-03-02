@@ -1,13 +1,15 @@
 #define OEMRESOURCE
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <atomic>
 #include <future>
 #include <map>
 #include <thread>
+#include <codecvt>
 #include "common/debugging/print.h"
-#define RESOURCE(relpath) "D:\\Jaysinco\\Cxx\\product\\testbed\\resources\\"##relpath
 #define LOG_LAST_ERROR(msg) LOG(ERROR) << msg << ", errno=" << GetLastError()
-// 变通方法:
+
+// 备注:
 // 1. 其他WS_EX_TOPMOST窗口无法隐藏 => select去掉回显窗口
 // 2. CTRL-ALT-DEL无法鼠标HOOK => 注册表可以禁用
 // 3. 右键菜单无法隐藏 => 不断置顶窗口
@@ -17,15 +19,18 @@ class AntiViewScreen
 {
 public:
     static void Lock(
-        const std::string &password = "",
-        bool blockMouseInput = true,
-        bool blockKeyboardInput = true);
+        const std::string &password_ascii = "",
+        const std::string &hintWord_u8 = u8"请输入密码: ",
+        const std::string &backgroundFile_u8 = u8"background.bmp",
+        const std::string &cursorFile_u8 = u8"point.cur",
+        bool blockMouseInput = false,
+        bool blockKeyboardInput = false);
 
 private:
     class ReplaceSystemCursor
     {
     public:
-        ReplaceSystemCursor(const std::string &iconFile);
+        ReplaceSystemCursor(const std::wstring &iconFile);
         ~ReplaceSystemCursor();
 
     private:
@@ -34,7 +39,8 @@ private:
 
     static void initScreen();
     static void updateScreen();
-    static void DrawRectBorder(HDC hdc, int left, int top, int right, int bottom);
+    static std::wstring utf8ToWstring(const std::string &str_u8);
+    static void drawRectBorder(HDC hdc, int left, int top, int right, int bottom);
     static LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
     static LRESULT CALLBACK mouseProc(INT nCode, WPARAM wParam, LPARAM lParam);
     static LRESULT CALLBACK keyboardProc(INT nCode, WPARAM wParam, LPARAM lParam);
@@ -49,6 +55,9 @@ private:
     static int screenHeight;
     static std::string inputPwd;
     static std::string unlockCode;
+    static std::wstring curFile;
+    static std::wstring backgroundFile;
+    static std::wstring hintWord;
 };
 
 HWND AntiViewScreen::hwnd;
@@ -61,19 +70,31 @@ int AntiViewScreen::screenWidth;
 int AntiViewScreen::screenHeight;
 std::string AntiViewScreen::inputPwd;
 std::string AntiViewScreen::unlockCode;
+std::wstring AntiViewScreen::hintWord;
+std::wstring AntiViewScreen::curFile;
+std::wstring AntiViewScreen::backgroundFile;
 
 void AntiViewScreen::Lock(
-    const std::string &password,
+    const std::string &password_ascii,
+    const std::string &hintWord_u8,
+    const std::string &backgroundFile_u8,
+    const std::string &cursorFile_u8,
     bool blockMouseInput,
     bool blockKeyboardInput)
 {
+    LOG(INFO) << "lock anti-view screen...";
+    LOG(INFO) << "hint=" << hintWord_u8;
+    LOG(INFO) << "background=" << backgroundFile_u8;
+    LOG(INFO) << "cursor=" << cursorFile_u8;
     done = false;
-    unlockCode = password;
+    unlockCode = password_ascii;
     inputPwd.clear();
     blockMouse = blockMouseInput;
     blockKeyboard = blockKeyboardInput;
-    LOG(INFO) << "lock anti-view screen...";
-    ReplaceSystemCursor cursorGuard(RESOURCE("point.cur"));
+    hintWord = utf8ToWstring(hintWord_u8);
+    backgroundFile = utf8ToWstring(backgroundFile_u8);
+    curFile = utf8ToWstring(cursorFile_u8);
+    ReplaceSystemCursor cursorGuard(curFile);
     initScreen();
     mouseHook = SetWindowsHookEx(WH_MOUSE_LL, mouseProc, GetModuleHandle(NULL), 0);
     if (mouseHook == NULL)
@@ -151,8 +172,8 @@ void AntiViewScreen::updateScreen()
     SIZE area = {region.right - region.left, region.bottom - region.top};
     HDC hdc = GetDC(hwnd);
     HDC hBitmapDC = CreateCompatibleDC(hdc);
-    HBITMAP hBitmap = (HBITMAP)LoadImage(
-        NULL, TEXT(RESOURCE("background.bmp")),
+    HBITMAP hBitmap = (HBITMAP)LoadImageW(
+        NULL, backgroundFile.c_str(),
         IMAGE_BITMAP, screenWidth, screenHeight,
         LR_DEFAULTCOLOR | LR_CREATEDIBSECTION | LR_LOADFROMFILE);
     if (hBitmap == NULL)
@@ -185,15 +206,14 @@ void AntiViewScreen::updateScreen()
     HPEN hOldPen = (HPEN)SelectObject(hBitmapDC, hPen);
     HBRUSH hBrush = CreateSolidBrush(color);
     HBRUSH hOldBrush = (HBRUSH)SelectObject(hBitmapDC, hBrush);
-    DrawRectBorder(
+    drawRectBorder(
         hBitmapDC,
         int(screenWidth / 2.5),
         screenHeight / 2 - penWidth,
         int(screenWidth / 1.5),
         screenHeight / 2 + fontHeight + penWidth / 2);
-    std::wstring context = L"请输入密码: ";
     SetBkColor(hBitmapDC, color);
-    TextOutW(hBitmapDC, screenWidth / 4, screenHeight / 2, context.c_str(), int(context.size()));
+    TextOutW(hBitmapDC, screenWidth / 4, screenHeight / 2, hintWord.c_str(), int(hintWord.size()));
     TextOutA(hBitmapDC, int(screenWidth / 2.5) + penWidth, screenHeight / 2,
              inputPwd.c_str(), int(inputPwd.size()));
     SelectObject(hBitmapDC, hOldBrush);
@@ -216,7 +236,13 @@ void AntiViewScreen::updateScreen()
     ShowWindow(hwnd, SW_SHOW);
 }
 
-void AntiViewScreen::DrawRectBorder(HDC hdc, int left, int top, int right, int bottom)
+std::wstring AntiViewScreen::utf8ToWstring(const std::string &str_u8)
+{
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> strCnv;
+    return strCnv.from_bytes(str_u8);
+}
+
+void AntiViewScreen::drawRectBorder(HDC hdc, int left, int top, int right, int bottom)
 {
     MoveToEx(hdc, left, top, NULL);
     LineTo(hdc, right, top);
@@ -299,12 +325,12 @@ LRESULT CALLBACK AntiViewScreen::keyboardProc(INT nCode, WPARAM wParam, LPARAM l
     return blockKeyboard ? 1 : 0;
 }
 
-AntiViewScreen::ReplaceSystemCursor::ReplaceSystemCursor(const std::string &iconFile)
+AntiViewScreen::ReplaceSystemCursor::ReplaceSystemCursor(const std::wstring &iconFile)
 {
-    HCURSOR hUserCursor = LoadCursorFromFileA(iconFile.c_str());
+    HCURSOR hUserCursor = LoadCursorFromFileW(iconFile.c_str());
     if (hUserCursor == NULL)
     {
-        LOG_LAST_ERROR("failed to load cursor, path=" << iconFile);
+        LOG_LAST_ERROR("failed to load cursor");
         return;
     }
     int allCursorId[] = {
@@ -366,5 +392,11 @@ int main(int argc, char *argv[])
     {
         LOG_LAST_ERROR("failed to set process dpi aware");
     }
-    AntiViewScreen::Lock("", false, false);
+    AntiViewScreen::Lock(
+        "",
+        u8"请输入密码: ",
+        u8"D:\\Jaysinco\\Cxx\\product\\testbed\\resources\\background.bmp",
+        u8"D:\\Jaysinco\\Cxx\\product\\testbed\\resources\\point.cur",
+        false,
+        false);
 }
