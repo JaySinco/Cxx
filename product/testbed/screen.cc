@@ -7,22 +7,17 @@
 #include <thread>
 #include <codecvt>
 #include "common/debugging/print.h"
-#define LOG_LAST_ERROR(msg) LOG(ERROR) << msg << ", errno=" << GetLastError()
 
-// 备注:
-// 1. 其他WS_EX_TOPMOST窗口无法隐藏 => select去掉回显窗口
-// 2. CTRL-ALT-DEL无法鼠标HOOK => 注册表可以禁用
-// 3. 右键菜单无法隐藏 => 不断置顶窗口
-// 4. 鼠标无法隐藏 => 更换系统鼠标图标
+#define LOG_LAST_ERROR(msg) LOG(ERROR) << msg << ", errno=" << GetLastError()
 
 class AntiViewScreen
 {
 public:
     static void Lock(
-        const std::string &password_ascii = "",
-        const std::string &hintWord_u8 = u8"请输入密码: ",
-        const std::string &backgroundFile_u8 = u8"background.bmp",
-        const std::string &cursorFile_u8 = u8"point.cur",
+        const std::string &password_ascii,
+        const std::string &hintWord_u8,
+        const std::string &backgroundFile_u8,
+        const std::string &cursorFile_u8,
         bool blockMouseInput = false,
         bool blockKeyboardInput = false);
 
