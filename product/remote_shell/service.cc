@@ -142,7 +142,7 @@ void Exec(cxx::service::ShellRtn &rtn, const char *cmd)
         rtn.success = false;
         return;
     }
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+    while (fgets(buffer.data(), int(buffer.size()), pipe.get()) != nullptr)
     {
         rtn.standardOutput += buffer.data();
     }

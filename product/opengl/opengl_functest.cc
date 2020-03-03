@@ -27,17 +27,17 @@ void glfw_error_callback(int error, const char *desc)
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
-    gCameraZ += -1 * gCameraMoveSpeed * yoffset;
+    gCameraZ += float(-1 * gCameraMoveSpeed * yoffset);
 }
 
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 {
     if (gLMousePressed)
     {
-        float dx = xpos - gLastMouseX;
-        float dy = ypos - gLastMouseY;
+        float dx = float(xpos - gLastMouseX);
+        float dy = float(ypos - gLastMouseY);
         float dz = std::hypot(dx, dy);
-        gStorage->get<Object>("OB_item")->spin(0.15 * dz, dy, dx, 0);
+        gStorage->get<Object>("OB_item")->spin(float(0.15 * dz), dy, dx, 0);
     }
     gLastMouseX = xpos;
     gLastMouseY = ypos;
