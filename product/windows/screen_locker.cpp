@@ -10,7 +10,6 @@ bool ScreenLocker::blockMouse;
 bool ScreenLocker::blockKeyboard;
 HHOOK ScreenLocker::mouseHook;
 HHOOK ScreenLocker::keyboardHook;
-std::atomic<bool> ScreenLocker::done;
 int ScreenLocker::screenWidth;
 int ScreenLocker::screenHeight;
 std::string ScreenLocker::inputPwd;
@@ -18,6 +17,28 @@ std::string ScreenLocker::unlockCode;
 std::wstring ScreenLocker::hintWord;
 std::wstring ScreenLocker::curFile;
 std::wstring ScreenLocker::backgroundFile;
+std::atomic<bool> ScreenLocker::done = true;
+
+std::wstring s2w(const std::string &str_u8)
+{
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> strConv;
+    return strConv.from_bytes(str_u8);
+}
+
+std::string w2s(const std::wstring &str)
+{
+    size_t len;
+    _locale_t locale = _create_locale(LC_ALL, "");
+    _wcstombs_s_l(&len, NULL, 0, str.c_str(), _TRUNCATE, locale);
+    char *buf = (char *)malloc(len + 1);
+    buf[len] = 0;
+    size_t converted;
+    _wcstombs_s_l(&converted, buf, len, str.c_str(), _TRUNCATE, locale);
+    std::string str_ansi(buf);
+    free(buf);
+    _free_locale(locale);
+    return str_ansi;
+}
 
 void ScreenLocker::Popup(
     const std::string &password_ascii,
@@ -25,22 +46,29 @@ void ScreenLocker::Popup(
     const std::string &backgroundFile_u8,
     const std::string &cursorFile_u8,
     bool blockMouseInput,
-    bool blockKeyboardInput)
+    bool blockKeyboardInput,
+    int msPinFreq)
 {
-    LOG(INFO) << "lock anti-view screen...";
-    done = false;
+    bool expected = true;
+    if (!done.compare_exchange_strong(expected, false))
+    {
+        LOG(ERROR) << "another screen locker is already running";
+        return;
+    }
+    LOG(INFO) << "lock screen";
     unlockCode = password_ascii;
     inputPwd.clear();
     blockMouse = blockMouseInput;
     blockKeyboard = blockKeyboardInput;
-    hintWord = utf8ToWstring(hintWord_u8);
-    backgroundFile = utf8ToWstring(backgroundFile_u8);
-    curFile = utf8ToWstring(cursorFile_u8);
-    LOG(INFO) << "hint=" << hintWord;
-    LOG(INFO) << "background=" << backgroundFile;
-    LOG(INFO) << "cursor=" << curFile;
-    ReplaceSystemCursor cursorGuard(curFile);
+    hintWord = s2w(hintWord_u8);
+    backgroundFile = s2w(backgroundFile_u8);
+    curFile = s2w(cursorFile_u8);
+    VLOG(1) << "password=" << unlockCode;
+    VLOG(1) << "hint=" << w2s(hintWord);
+    VLOG(1) << "background=" << w2s(backgroundFile);
+    VLOG(1) << "cursor=" << w2s(curFile);
     initScreen();
+    ReplaceSystemCursor cursorGuard(curFile);
     mouseHook = SetWindowsHookEx(WH_MOUSE_LL, mouseProc, GetModuleHandle(NULL), 0);
     if (mouseHook == NULL)
     {
@@ -52,13 +80,13 @@ void ScreenLocker::Popup(
         LOG_LAST_ERROR("failed to set keyboard hook");
     }
     updateScreen();
-    auto background = std::async(std::launch::async, [] {
+    auto background = std::async(std::launch::async, [=] {
         while (!done)
         {
+            std::this_thread::sleep_for(std::chrono::milliseconds(msPinFreq));
             BringWindowToTop(hwnd);
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
-        LOG(INFO) << "background task stopped!";
+        LOG(INFO) << "background task stopped";
     });
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0))
@@ -76,8 +104,17 @@ void ScreenLocker::Popup(
         LOG_LAST_ERROR("failed to unset keyboard hook");
     }
     DestroyWindow(hwnd);
+    hwnd = NULL;
     background.wait();
-    LOG(INFO) << "unlock anti-view screen!";
+    LOG(INFO) << "screen unlocked";
+}
+
+void ScreenLocker::Close()
+{
+    if (!done && hwnd != NULL)
+    {
+        PostMessage(hwnd, WM_QUIT, 0, NULL);
+    }
 }
 
 void ScreenLocker::initScreen()
@@ -124,6 +161,8 @@ void ScreenLocker::updateScreen()
     if (hBitmap == NULL)
     {
         LOG_LAST_ERROR("failed to load bitmap");
+        Close();
+        return;
     }
     SelectObject(hBitmapDC, hBitmap);
     // 绘图
@@ -158,9 +197,18 @@ void ScreenLocker::updateScreen()
         int(screenWidth / 1.5),
         screenHeight / 2 + fontHeight + penWidth / 2);
     SetBkColor(hBitmapDC, color);
-    TextOutW(hBitmapDC, screenWidth / 4, screenHeight / 2, hintWord.c_str(), int(hintWord.size()));
-    TextOutA(hBitmapDC, int(screenWidth / 2.5) + penWidth, screenHeight / 2,
-             inputPwd.c_str(), int(inputPwd.size()));
+    TextOutW(
+        hBitmapDC,
+        screenWidth / 4,
+        screenHeight / 2,
+        hintWord.c_str(),
+        int(hintWord.size()));
+    TextOutA(
+        hBitmapDC,
+        int(screenWidth / 2.5) + penWidth,
+        screenHeight / 2,
+        inputPwd.c_str(),
+        int(inputPwd.size()));
     SelectObject(hBitmapDC, hOldBrush);
     SelectObject(hBitmapDC, hOldPen);
     SelectObject(hBitmapDC, hOldFont);
@@ -244,7 +292,7 @@ LRESULT CALLBACK ScreenLocker::keyboardProc(INT nCode, WPARAM wParam, LPARAM lPa
         case VK_RETURN:
             if (inputPwd == unlockCode)
             {
-                PostMessage(hwnd, WM_QUIT, 0, NULL);
+                Close();
             }
             else
             {
@@ -253,7 +301,8 @@ LRESULT CALLBACK ScreenLocker::keyboardProc(INT nCode, WPARAM wParam, LPARAM lPa
             }
             break;
         default:
-            if (char c = MapVirtualKeyA(p->vkCode, MAPVK_VK_TO_CHAR))
+            char c = MapVirtualKeyA(p->vkCode, MAPVK_VK_TO_CHAR);
+            if (c && isprint(c))
             {
                 inputPwd += c;
                 updateScreen();
@@ -270,6 +319,7 @@ ScreenLocker::ReplaceSystemCursor::ReplaceSystemCursor(const std::wstring &iconF
     if (hUserCursor == NULL)
     {
         LOG_LAST_ERROR("failed to load cursor");
+        Close();
         return;
     }
     int allCursorId[] = {
