@@ -179,7 +179,7 @@ std::pair<Symbol, Symbol> plc_layer(Symbol data, Symbol label) {
 	Symbol plc_conv = convolution_layer("plc_conv", data,
 		2, Shape(1, 1), Shape(1, 1), Shape(0, 0), true);
 	Symbol plc_logist_out = dense_layer("plc_logist_out", plc_conv, BOARD_SIZE, "None");
-	Symbol plc_out = softmax("plc_out", plc_logist_out);
+	Symbol plc_out = SoftmaxActivation("plc_out", plc_logist_out);
 	Symbol plc_m_loss = -1 * elemwise_mul(label, log_softmax(plc_logist_out));
 	Symbol plc_loss = MakeLoss(mean(sum(plc_m_loss, dmlc::optional<Shape>(Shape(1)))));
 	return std::make_pair(plc_out, plc_loss);
