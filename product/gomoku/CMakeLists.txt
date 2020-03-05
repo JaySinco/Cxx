@@ -19,8 +19,7 @@ target_link_libraries(gomoku libmxnet)
 
 set(COPY_FILE_LIST
     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/libmxnet.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/mkl_rt.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/mkl_intel_thread.dll
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/mkldnn.dll
     ${CMAKE_SOURCE_DIR}/product/gomoku/model/FIR-8x64i3@9336.param
     )
 

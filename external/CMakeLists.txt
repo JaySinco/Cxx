@@ -22,12 +22,6 @@ set_target_properties(libmxnet PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/
 add_library(glfw STATIC IMPORTED GLOBAL)
 set_target_properties(glfw PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/glfw/lib/glfw3.lib)
 
-add_library(opencv STATIC IMPORTED GLOBAL)
-set_target_properties(opencv PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/lib/opencv_world347.lib)
-
-add_library(assimp STATIC IMPORTED GLOBAL)
-set_target_properties(assimp PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/assimp/lib/assimp-vc141-mt.lib)
-
 add_library(thrift STATIC IMPORTED GLOBAL)
 set_target_properties(thrift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/thrift/lib/thriftmd.lib)
 
