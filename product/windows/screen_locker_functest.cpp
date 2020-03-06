@@ -1,10 +1,7 @@
 #include "screen_locker.h"
-#include <gflags/gflags.h>
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
 #include <thread>
 #include <chrono>
+#include "common/utility/logging.h"
 
 int main(int argc, char *argv[])
 {

@@ -1,9 +1,10 @@
 #include "screen_locker.h"
 #include <future>
 #include <thread>
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
+#include "common/utility/logging.h"
+#include "common/utility/string_helper.h"
+
+using namespace cxx;
 
 HWND ScreenLocker::hwnd;
 bool ScreenLocker::blockMouse;
@@ -18,27 +19,6 @@ std::wstring ScreenLocker::hintWord;
 std::wstring ScreenLocker::curFile;
 std::wstring ScreenLocker::backgroundFile;
 std::atomic<bool> ScreenLocker::done = true;
-
-std::wstring s2w(const std::string &str_u8)
-{
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> strConv;
-    return strConv.from_bytes(str_u8);
-}
-
-std::string w2s(const std::wstring &str)
-{
-    size_t len;
-    _locale_t locale = _create_locale(LC_ALL, "");
-    _wcstombs_s_l(&len, NULL, 0, str.c_str(), _TRUNCATE, locale);
-    char *buf = (char *)malloc(len + 1);
-    buf[len] = 0;
-    size_t converted;
-    _wcstombs_s_l(&converted, buf, len, str.c_str(), _TRUNCATE, locale);
-    std::string str_ansi(buf);
-    free(buf);
-    _free_locale(locale);
-    return str_ansi;
-}
 
 void ScreenLocker::Popup(
     const std::string &password_ascii,
@@ -60,13 +40,13 @@ void ScreenLocker::Popup(
     inputPwd.clear();
     blockMouse = blockMouseInput;
     blockKeyboard = blockKeyboardInput;
-    hintWord = s2w(hintWord_u8);
-    backgroundFile = s2w(backgroundFile_u8);
-    curFile = s2w(cursorFile_u8);
+    hintWord = decodeUtf8(hintWord_u8);
+    backgroundFile = decodeUtf8(backgroundFile_u8);
+    curFile = decodeUtf8(cursorFile_u8);
     VLOG(1) << "password=" << unlockCode;
-    VLOG(1) << "hint=" << w2s(hintWord);
-    VLOG(1) << "background=" << w2s(backgroundFile);
-    VLOG(1) << "cursor=" << w2s(curFile);
+    VLOG(1) << "hint=" << encodeAnsi(hintWord);
+    VLOG(1) << "background=" << encodeAnsi(backgroundFile);
+    VLOG(1) << "cursor=" << encodeAnsi(curFile);
     initScreen();
     ReplaceSystemCursor cursorGuard(curFile);
     mouseHook = SetWindowsHookEx(WH_MOUSE_LL, mouseProc, GetModuleHandle(NULL), 0);

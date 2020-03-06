@@ -7,7 +7,5 @@ add_executable(screen_locker_functest
     screen_locker_functest.cpp
     )
 target_link_libraries(screen_locker_functest
-    glog
-    gflags
-    shlwapi
+    common_utility
     )

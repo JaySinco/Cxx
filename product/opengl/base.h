@@ -1,13 +1,11 @@
 #pragma once
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
 #include <iostream>
+#include "common/utility/logging.h"
 #define QUOT(x) (std::string("\"")+x+"\"")
 #define STR(x) (std::string(x))
 
@@ -56,8 +54,6 @@ private:
         return out;
     }
 };
-
-
 
 } // namespace gl
 

@@ -22,10 +22,8 @@ set(LIB_SRCS
 
 add_library(${MODULE_NAME} ${LIB_SRCS})
 target_link_libraries(${MODULE_NAME}
+    common_utility
     opengl32
-    glog
-    gflags
-    shlwapi
     glfw
     glad
     )

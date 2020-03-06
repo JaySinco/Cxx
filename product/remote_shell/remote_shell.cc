@@ -9,9 +9,7 @@
 #include <thrift/transport/TTransportUtils.h>
 #include <thrift/TToString.h>
 #include <thrift/stdcxx.h>
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
+#include "common/utility/logging.h"
 #include "service.h"
 
 using namespace apache::thrift;

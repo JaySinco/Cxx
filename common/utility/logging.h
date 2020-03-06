@@ -3,13 +3,6 @@
 #define GOOGLE_GLOG_DLL_DECL
 #include <glog/logging.h>
 #include <gflags/gflags.h>
-#if __cplusplus >= 201703L
-// #pragma clang diagnostic push
-// #pragma clang diagnostic ignored "-Wreorder"
-#include <pprint/pprint.hpp>
-// #pragma clang diagnostic pop
-#endif
-
 #define TRY_BEGIN \
     try           \
     {
@@ -26,14 +19,17 @@
         LOG(ERROR) << "uncaught exception <unknow type>";    \
         std::exit(0);                                        \
     }
-
 #if __cplusplus >= 201703L
+#include <pprint/pprint.hpp>
+namespace cxx
+{
 template <typename T>
-std::string TOSTR(T &&Arg)
+std::string tostr(T &&Arg)
 {
     std::ostringstream ss;
     pprint::PrettyPrinter printer(ss);
     printer.print(std::forward<T>(Arg));
     return ss.str();
 }
+} // namespace cxx
 #endif

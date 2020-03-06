@@ -4,7 +4,7 @@
 #include <bsoncxx/json.hpp>
 #include <mongocxx/client.hpp>
 #include <mongocxx/instance.hpp>
-#include "common/debugging/print.h"
+#include "common/utility/logging.h"
 
 int main(int argc, char *argv[])
 {

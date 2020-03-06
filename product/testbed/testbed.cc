@@ -5,7 +5,10 @@
 #include <future>
 #include <functional>
 #include <execution>
-#include "common/debugging/print.h"
+#include "common/utility/logging.h"
+#include "common/utility/string_helper.h"
+
+using namespace cxx;
 using namespace std::literals;
 using namespace std::placeholders;
 
@@ -17,6 +20,6 @@ int main(int argc, char *argv[])
     FLAGS_logtostderr = 1;
     FLAGS_minloglevel = 0;
     std::vector<int> ivec{1, 2, 3, 4, 5};
-    LOG(INFO) << TOSTR(ivec);
+    LOG(INFO) << tostr(ivec);
     CATCH_ALL
 }

@@ -5,7 +5,6 @@
 #include <string>
 #include <atomic>
 #include <map>
-#include <codecvt>
 #define LOG_LAST_ERROR(msg) LOG(ERROR) << msg << ", errno=" << GetLastError()
 
 class ScreenLocker

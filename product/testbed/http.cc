@@ -1,7 +1,4 @@
 #include <Windows.h>
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
 #include <gtest/gtest.h>
 #include <regex>
 #include <sstream>
@@ -10,8 +7,12 @@
 #include <curl/curl.h>
 #include <tinyxml2.h>
 #include <nlohmann/json.hpp>
+#include "common/utility/logging.h"
+#include "common/utility/string_helper.h"
 #define QUOT(x) (std::string("\"") + x + "\"")
 #define MAKE_DETAIL_URL(x) (std::string("https://") + x + "/cgi-bin/mmwebwx-bin")
+
+using namespace cxx;
 
 const std::string BASE_DOMAIN = "https://login.weixin.qq.com";
 const std::string USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36";
@@ -87,7 +88,7 @@ void WechatClient::login()
     auto wxInitResp = httpPost(wxInitUrl.str(), jsonHeader, logInfo.baseRequest);
     LOG(INFO) << wxInitResp.code;
     LOG(INFO) << wxInitResp.headers;
-    LOG(INFO) << wxInitResp.body;
+    LOG(INFO) << encodeAnsi(decodeUtf8(wxInitResp.body));
 }
 
 void WechatClient::waitForScanQRCode()

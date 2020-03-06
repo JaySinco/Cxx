@@ -1,12 +1,9 @@
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "common/utility/logging.h"
 
 static void glfw_error_callback(int error, const char *description)
 {

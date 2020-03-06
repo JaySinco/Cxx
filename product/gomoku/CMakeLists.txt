@@ -15,6 +15,7 @@ set(LIB_SRCS
     )
 
 add_executable(gomoku ${LIB_SRCS})
+target_compile_options(gomoku PUBLIC /W1)
 target_link_libraries(gomoku libmxnet)
 
 set(COPY_FILE_LIST

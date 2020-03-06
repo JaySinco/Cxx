@@ -4,10 +4,8 @@
 #include <Windows.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
 #include <gtest/gtest.h>
+#include "common/utility/logging.h"
 
 #define CHECK_WSA_ERROR(msg, isWrong)                                              \
     if (isWrong)                                                                   \

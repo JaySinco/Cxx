@@ -5,9 +5,7 @@
 #include <WtsApi32.h>
 #include <Pdh.h>
 #include <array>
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
+#include "common/utility/logging.h"
 #include "service.h"
 #define MB (1024 * 1024)
 #define GB (1024 * 1024 * 1024)

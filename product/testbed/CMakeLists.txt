@@ -5,16 +5,12 @@ add_executable(testbed testbed.cc)
 set_target_properties (testbed PROPERTIES CXX_STANDARD 17)
 target_compile_options(testbed PUBLIC "/Zc:__cplusplus")
 target_link_libraries(testbed
-    glog
-    gflags
-    shlwapi
+    common_utility
     )
 
 add_executable(socket_t socket.cc)
 target_link_libraries(socket_t
-    glog
-    gflags
-    shlwapi
+    common_utility
     gtest
     libssl
     libcrypto
@@ -23,9 +19,7 @@ target_link_libraries(socket_t
 
 add_executable(imgui_t imgui.cc)
 target_link_libraries(imgui_t
-    glog
-    gflags
-    shlwapi
+    common_utility
     glfw
     glad
     imgui
@@ -34,12 +28,10 @@ target_link_libraries(imgui_t
 
 add_executable(http_t http.cc)
 target_link_libraries(http_t
+    common_utility
     ws2_32
     wldap32
     normaliz
-    glog
-    gflags
-    shlwapi
     libcurl
     libssl
     libcrypto
@@ -49,9 +41,7 @@ target_link_libraries(http_t
 
 add_executable(mongo_t mongo.cc)
 target_link_libraries(mongo_t
-    glog
-    gflags
-    shlwapi
+    common_utility
     mongoc
     bson
     mongocxx
