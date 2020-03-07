@@ -40,10 +40,9 @@ list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/tinyxml/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/json/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/glm/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/pprint/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/lua/include/)
 message(STATUS "Include dir -> " ${INCLUDE_DIR})
 include_directories(${INCLUDE_DIR})
-
-
 
 macro(CAR var)
     SET(${var} ${ARGV1})
@@ -151,8 +150,6 @@ macro (add_subdirectory)
     CDR(ARGUMENTS ${ARGN})
     _add_subdirectory (${DIRNAME})
 endmacro()
-
-
 
 configure_msvc_runtime()
 

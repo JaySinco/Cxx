@@ -52,3 +52,9 @@ target_link_libraries(mongo_t
     bcrypt
     dnsapi
     )
+
+add_executable(lua_t lua.cc)
+target_link_libraries(lua_t
+    common_utility
+    liblua
+    )

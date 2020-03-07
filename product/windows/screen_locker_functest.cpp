@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
     FLAGS_minloglevel = 0;
     if (!SetProcessDPIAware())
     {
-        LOG_LAST_ERROR("failed to set process dpi aware");
+        LOG_LAST_WIN_ERROR("failed to set process dpi aware");
     }
     std::thread(
         [] {

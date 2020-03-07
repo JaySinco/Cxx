@@ -2,7 +2,6 @@
 #include <windows.h>
 #include "logging.h"
 #include "string_helper.h"
-#define LOG_LAST_ERROR(msg) LOG(ERROR) << msg << ", errno=" << GetLastError()
 
 namespace cxx
 {
@@ -13,7 +12,7 @@ static std::string encode(const std::wstring &str, unsigned codePage)
     auto buf = new char[len]{};
     if (0 == WideCharToMultiByte(codePage, 0, str.c_str(), -1, buf, len, NULL, NULL))
     {
-        LOG_LAST_ERROR("failed to encode wstring");
+        LOG_LAST_WIN_ERROR("failed to encode wstring");
     }
     auto ret = std::string(buf);
     delete[] buf;
@@ -31,7 +30,7 @@ static std::wstring decode(const std::string &str, unsigned codePage)
     auto buf = new wchar_t[len]{};
     if (0 == MultiByteToWideChar(codePage, 0, str.c_str(), -1, buf, len))
     {
-        LOG_LAST_ERROR("failed to decode string");
+        LOG_LAST_WIN_ERROR("failed to decode string");
     }
     auto ret = std::wstring(buf);
     delete[] buf;

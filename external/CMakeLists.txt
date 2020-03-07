@@ -55,6 +55,7 @@ set_target_properties(bsoncxx PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/e
 add_subdirectory(glad)
 add_subdirectory(imgui)
 add_subdirectory(tinyxml)
+add_subdirectory(lua)
 
 add_dependencies(__target_${MODULE_NAME}
     ${SUBDIRECTORY_TARGETS}

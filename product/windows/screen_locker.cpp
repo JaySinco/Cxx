@@ -52,12 +52,12 @@ void ScreenLocker::Popup(
     mouseHook = SetWindowsHookEx(WH_MOUSE_LL, mouseProc, GetModuleHandle(NULL), 0);
     if (mouseHook == NULL)
     {
-        LOG_LAST_ERROR("failed to set mouse hook");
+        LOG_LAST_WIN_ERROR("failed to set mouse hook");
     }
     keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboardProc, GetModuleHandle(NULL), 0);
     if (keyboardHook == NULL)
     {
-        LOG_LAST_ERROR("failed to set keyboard hook");
+        LOG_LAST_WIN_ERROR("failed to set keyboard hook");
     }
     updateScreen();
     auto background = std::async(std::launch::async, [=] {
@@ -77,11 +77,11 @@ void ScreenLocker::Popup(
     done = true;
     if (!UnhookWindowsHookEx(mouseHook))
     {
-        LOG_LAST_ERROR("failed to unset mouse hook");
+        LOG_LAST_WIN_ERROR("failed to unset mouse hook");
     }
     if (!UnhookWindowsHookEx(keyboardHook))
     {
-        LOG_LAST_ERROR("failed to unset keyboard hook");
+        LOG_LAST_WIN_ERROR("failed to unset keyboard hook");
     }
     DestroyWindow(hwnd);
     hwnd = NULL;
@@ -140,7 +140,7 @@ void ScreenLocker::updateScreen()
         LR_DEFAULTCOLOR | LR_CREATEDIBSECTION | LR_LOADFROMFILE);
     if (hBitmap == NULL)
     {
-        LOG_LAST_ERROR("failed to load bitmap");
+        LOG_LAST_WIN_ERROR("failed to load bitmap");
         Close();
         return;
     }
@@ -298,7 +298,7 @@ ScreenLocker::ReplaceSystemCursor::ReplaceSystemCursor(const std::wstring &iconF
     HCURSOR hUserCursor = LoadCursorFromFileW(iconFile.c_str());
     if (hUserCursor == NULL)
     {
-        LOG_LAST_ERROR("failed to load cursor");
+        LOG_LAST_WIN_ERROR("failed to load cursor");
         Close();
         return;
     }
@@ -322,7 +322,7 @@ ScreenLocker::ReplaceSystemCursor::ReplaceSystemCursor(const std::wstring &iconF
         HCURSOR hOldCursor = CopyCursor(LoadCursor(NULL, MAKEINTRESOURCE(id)));
         if (hOldCursor == NULL)
         {
-            LOG_LAST_ERROR("failed to copy cursor, id=" << id);
+            LOG_LAST_WIN_ERROR("failed to copy cursor, id=" << id);
             continue;
         }
         if (SetSystemCursor(CopyCursor(hUserCursor), id))
@@ -331,12 +331,12 @@ ScreenLocker::ReplaceSystemCursor::ReplaceSystemCursor(const std::wstring &iconF
         }
         else
         {
-            LOG_LAST_ERROR("failed to replace system cursor, id=" << id);
+            LOG_LAST_WIN_ERROR("failed to replace system cursor, id=" << id);
         }
     }
     if (!DestroyCursor(hUserCursor))
     {
-        LOG_LAST_ERROR("failed to destroy user cursor");
+        LOG_LAST_WIN_ERROR("failed to destroy user cursor");
     }
 }
 
@@ -346,7 +346,7 @@ ScreenLocker::ReplaceSystemCursor::~ReplaceSystemCursor()
     {
         if (!SetSystemCursor(it.second, it.first))
         {
-            LOG_LAST_ERROR("failed to restore system cursor, id=" << it.first);
+            LOG_LAST_WIN_ERROR("failed to restore system cursor, id=" << it.first);
         }
     }
 }
