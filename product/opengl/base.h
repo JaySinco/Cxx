@@ -6,16 +6,20 @@
 #include <string>
 #include <iostream>
 #include "common/utility/logging.h"
-#define QUOT(x) (std::string("\"")+x+"\"")
+#define QUOT(x) (std::string("\"") + x + "\"")
 #define STR(x) (std::string(x))
 
-namespace cxx {
+namespace cxx
+{
 
-namespace gl {
+namespace gl
+{
 
-class Base {
+class Base
+{
 public:
-    enum TYPE { 
+    enum TYPE
+    {
         CAMERA,
         LIGHT,
         MATERIAL,
@@ -25,32 +29,54 @@ public:
         SHADER,
         STORAGE,
         TEXTURE,
-     };
+    };
     TYPE getType() const { return type_; }
     std::string getId() const { return id_; }
+
 protected:
-    Base(TYPE type, const std::string &id): type_(type), id_(id) {};
+    Base(TYPE type, const std::string &id) : type_(type), id_(id){};
     virtual ~Base() { LOG(INFO) << *this << " deleted"; }
+
 private:
     // noncopyable
-    Base(const Base&);
-    const Base &operator=(const Base&);
+    Base(const Base &);
+    const Base &operator=(const Base &);
     TYPE type_;
     std::string id_;
 
-    friend std::ostream &operator<<(std::ostream &out, const Base &base) {
-        switch (base.getType()) {
-            case Base::CAMERA  : out << "camera"  ; break;
-            case Base::LIGHT   : out << "light"   ; break;
-            case Base::MATERIAL: out << "material"; break;
-            case Base::MODEL   : out << "model"   ; break;
-            case Base::OBJECT  : out << "object"  ; break;
-            case Base::SCENERY : out << "scenery" ; break;
-            case Base::SHADER  : out << "shader"  ; break;
-            case Base::STORAGE : out << "storage" ; break;
-            case Base::TEXTURE : out << "texture" ; break;
+    friend std::ostream &operator<<(std::ostream &out, const Base &base)
+    {
+        switch (base.getType())
+        {
+        case Base::CAMERA:
+            out << "camera";
+            break;
+        case Base::LIGHT:
+            out << "light";
+            break;
+        case Base::MATERIAL:
+            out << "material";
+            break;
+        case Base::MODEL:
+            out << "model";
+            break;
+        case Base::OBJECT:
+            out << "object";
+            break;
+        case Base::SCENERY:
+            out << "scenery";
+            break;
+        case Base::SHADER:
+            out << "shader";
+            break;
+        case Base::STORAGE:
+            out << "storage";
+            break;
+        case Base::TEXTURE:
+            out << "texture";
+            break;
         }
-        out << "[id="  << QUOT(base.getId()) << "]";
+        out << "[id=" << QUOT(base.getId()) << "]";
         return out;
     }
 };

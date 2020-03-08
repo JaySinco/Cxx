@@ -1,15 +1,19 @@
 #pragma once
 #include "base.h"
 
-namespace cxx {
+namespace cxx
+{
 
-namespace gl {
+namespace gl
+{
 
-class Texture: public Base {
+class Texture : public Base
+{
 public:
     Texture(const std::string &id, const std::string &path, bool flip_y_aixs = true);
     ~Texture();
     void use(unsigned index = 0) const;
+
 private:
     unsigned texture;
 };

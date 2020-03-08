@@ -19,11 +19,6 @@ static std::string encode(const std::wstring &str, unsigned codePage)
     return ret;
 }
 
-std::string encodeAnsi(const std::wstring &str)
-{
-    return encode(str, CP_ACP);
-}
-
 static std::wstring decode(const std::string &str, unsigned codePage)
 {
     int len = MultiByteToWideChar(codePage, 0, str.c_str(), -1, NULL, 0);
@@ -35,6 +30,11 @@ static std::wstring decode(const std::string &str, unsigned codePage)
     auto ret = std::wstring(buf);
     delete[] buf;
     return ret;
+}
+
+std::string encodeAnsi(const std::wstring &str)
+{
+    return encode(str, CP_ACP);
 }
 
 std::wstring decodeUtf8(const std::string &str)

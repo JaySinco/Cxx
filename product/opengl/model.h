@@ -2,11 +2,14 @@
 #include <vector>
 #include "base.h"
 
-namespace cxx {
+namespace cxx
+{
 
-namespace gl {
+namespace gl
+{
 
-struct BoundRect {
+struct BoundRect
+{
     float lowX = std::numeric_limits<float>::max();
     float lowY = std::numeric_limits<float>::max();
     float lowZ = std::numeric_limits<float>::max();
@@ -19,25 +22,33 @@ struct BoundRect {
 
 std::ostream &operator<<(std::ostream &out, const BoundRect &rect);
 
-class Model: public Base {
+class Model : public Base
+{
 public:
-    enum VERTEX_ATTR { POS=3, COLOR=3, NORM=3, TXR=2 };
+    enum VERTEX_ATTR
+    {
+        POS = 3,
+        COLOR = 3,
+        NORM = 3,
+        TXR = 2
+    };
     Model(
         const std::string &id,
-        const std::vector<float> &vertices, 
+        const std::vector<float> &vertices,
         const std::vector<unsigned> &indices,
         const std::vector<VERTEX_ATTR> &attr);
     Model(const std::string &id, const std::string &path);
     ~Model();
     void draw() const;
     BoundRect getBoundRect() const;
+
 private:
     void load(
         const std::vector<float> &vertices,
         const std::vector<unsigned> &indices,
         const std::vector<VERTEX_ATTR> &attr);
     void readObjFile(
-        const std::string &path, 
+        const std::string &path,
         std::vector<float> &vertices,
         std::vector<unsigned> &indices,
         std::vector<VERTEX_ATTR> &attr);

@@ -2,13 +2,22 @@
 #include <vector>
 #include "base.h"
 
-namespace cxx {
+namespace cxx
+{
 
-namespace gl {
+namespace gl
+{
 
-class Camera: public Base {
+class Camera : public Base
+{
 public:
-    enum MOVE { FORWARD, BACKWARD, LEFT, RIGHT };
+    enum MOVE
+    {
+        FORWARD,
+        BACKWARD,
+        LEFT,
+        RIGHT
+    };
     Camera(
         const std::string &id,
         float fov_in_degree,
@@ -25,6 +34,7 @@ public:
     glm::vec3 front() const;
     glm::mat4 getViewMatrix();
     glm::mat4 getProjectionMatrix() const;
+
 private:
     void updateVec();
     glm::vec3 posVec = glm::vec3(0.0f, 0.0f, 0.0f);

@@ -2,27 +2,34 @@
 #include <numeric>
 #include "scenery.h"
 
-namespace cxx {
+namespace cxx
+{
 
-namespace gl {
+namespace gl
+{
 
-Scenery::Scenery(const std::string &id): Base(Base::SCENERY, id) {}
+Scenery::Scenery(const std::string &id) : Base(Base::SCENERY, id) {}
 
-void Scenery::putObject(const std::string &id) {
+void Scenery::putObject(const std::string &id)
+{
     object_set.insert(id);
 }
 
-void Scenery::putCamera(const std::string &id) {
+void Scenery::putCamera(const std::string &id)
+{
     camera_ = id;
 }
 
-void Scenery::putLight(const std::string &id) {
+void Scenery::putLight(const std::string &id)
+{
     light_ = id;
 }
 
-BoundRect Scenery::getBoundRect(const Storage &storage) const {
+BoundRect Scenery::getBoundRect(const Storage &storage) const
+{
     BoundRect bounded;
-    for (const auto &object_id: object_set) {
+    for (const auto &object_id : object_set)
+    {
         auto object = storage.get<Object>(object_id);
         auto rect = storage.get<Model>(object->model())->getBoundRect();
         rect.applyModelMatrix(object->getModelMatrix());
@@ -37,14 +44,17 @@ BoundRect Scenery::getBoundRect(const Storage &storage) const {
     return bounded;
 }
 
-void Scenery::render(const Storage &storage) {
+void Scenery::render(const Storage &storage)
+{
     auto camera = storage.get<Camera>(camera_);
     auto light = storage.get<Light>(light_);
-    for (const auto &object_id: object_set) {
+    for (const auto &object_id : object_set)
+    {
         auto object = storage.get<Object>(object_id);
         // load shader
-        if (object->shader() != "" && 
-                (last_render_shader == "" || last_render_shader != object->shader())) {
+        if (object->shader() != "" &&
+            (last_render_shader == "" || last_render_shader != object->shader()))
+        {
             auto shader = storage.get<Shader>(object->shader());
             LOG(INFO) << "using " << *shader;
             shader->use();
@@ -53,7 +63,8 @@ void Scenery::render(const Storage &storage) {
         auto current_shader = storage.get<Shader>(last_render_shader);
         current_shader->setMat4("uf_xform_model", object->getModelMatrix());
         // load material
-        if (object->material() != "") {
+        if (object->material() != "")
+        {
             auto material = storage.get<Material>(object->material());
             storage.get<Texture>(material->diff_texture())->use(0);
             current_shader->setInt("uf_material.diffuse", 0);
@@ -77,7 +88,8 @@ void Scenery::render(const Storage &storage) {
         current_shader->setFloat("uf_light.spot_innerCutOff", light->data().spot_innerCutOff);
         current_shader->setFloat("uf_light.spot_outerCutOff", light->data().spot_outerCutOff);
         // load model
-        if (object->model() == "") {
+        if (object->model() == "")
+        {
             LOG(ERROR) << object << " haven't load model yet";
             exit(-1);
         }

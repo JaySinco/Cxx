@@ -41,6 +41,8 @@ list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/json/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/glm/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/pprint/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/lua/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/tinyobjloader/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/stb/include/)
 message(STATUS "Include dir -> " ${INCLUDE_DIR})
 include_directories(${INCLUDE_DIR})
 

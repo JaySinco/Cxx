@@ -38,8 +38,10 @@ constexpr int BOARD_SIZE = BOARD_MAX_ROW * BOARD_MAX_COL;
 constexpr int NO_MOVE_YET = -1;
 extern std::mt19937 global_random_engine;
 
-inline void show_global_cfg(std::ostream &out) {
-    out << "=== global configure ===" << "\ngame_mode=" << BOARD_MAX_ROW << "x" << BOARD_MAX_COL << "by" << FIVE_IN_ROW
+inline void show_global_cfg(std::ostream &out)
+{
+    out << "=== global configure ==="
+        << "\ngame_mode=" << BOARD_MAX_ROW << "x" << BOARD_MAX_COL << "by" << FIVE_IN_ROW
         << "\ninput_feature=" << INPUT_FEATURE_NUM << "\nbatch_size=" << BATCH_SIZE
         << "\nbuffer_size=" << BUFFER_SIZE << "\nepoch_per_game=" << EPOCH_PER_GAME
         << "\nc_puct=" << C_PUCT << "\ndirichlet_alpha=" << DIRICHLET_ALPHA
@@ -50,5 +52,6 @@ inline void show_global_cfg(std::ostream &out) {
         << "\nnet_num_filter=" << NET_NUM_FILTER << "\nnet_num_resudual_block=" << NET_NUM_RESIDUAL_BLOCK
         << "\ntest_pure_itermax=" << TEST_PURE_ITERMAX
         << "\ntrain_deep_itermax=" << TRAIN_DEEP_ITERMAX
-        << "\n" << std::endl;
+        << "\n"
+        << std::endl;
 }

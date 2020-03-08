@@ -10,11 +10,14 @@
 #include "storage.h"
 #include "texture.h"
 
-namespace cxx {
+namespace cxx
+{
 
-namespace gl {
+namespace gl
+{
 
-class Scenery: public Base {
+class Scenery : public Base
+{
 public:
     Scenery(const std::string &id);
     void putObject(const std::string &id);
@@ -22,6 +25,7 @@ public:
     void putLight(const std::string &id);
     BoundRect getBoundRect(const Storage &storage) const;
     void render(const Storage &storage);
+
 private:
     std::set<std::string> object_set;
     std::string camera_;

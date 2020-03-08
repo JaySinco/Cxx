@@ -38,8 +38,8 @@ set(LIB_SRCS
     )
 add_library(${MODULE_NAME} ${LIB_SRCS})
 
-add_executable(lua src/lua.c)
-target_link_libraries(lua ${MODULE_NAME})
+# add_executable(lua src/lua.c)
+# target_link_libraries(lua ${MODULE_NAME})
 
-add_executable(luac src/luac.c)
-target_link_libraries(luac ${MODULE_NAME})
+# add_executable(luac src/luac.c)
+# target_link_libraries(luac ${MODULE_NAME})

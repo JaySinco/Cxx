@@ -1,14 +1,24 @@
 #pragma once
 #include "base.h"
 
-namespace cxx {
+namespace cxx
+{
 
-namespace gl {
+namespace gl
+{
 
-class Light: public Base {
+class Light : public Base
+{
 public:
-    enum Type { DIRECT=0, POINT=1, SPOT=2, GLOBAL=3 };
-    struct Data {
+    enum Type
+    {
+        DIRECT = 0,
+        POINT = 1,
+        SPOT = 2,
+        GLOBAL = 3
+    };
+    struct Data
+    {
         Type all_type;
         glm::vec3 all_ambient;
         glm::vec3 all_diffuse;
@@ -21,28 +31,33 @@ public:
         float spot_innerCutOff;
         float spot_outerCutOff;
     };
-    Light(const std::string &id): Base(Base::LIGHT, id) {}
+    Light(const std::string &id) : Base(Base::LIGHT, id) {}
     Data data() const { return data_; }
+
 protected:
     Data data_;
 };
 
-class GlobalLight: public Light {
+class GlobalLight : public Light
+{
 public:
-    GlobalLight(const std::string &id, glm::vec3 ambient): Light(id) {
+    GlobalLight(const std::string &id, glm::vec3 ambient) : Light(id)
+    {
         data_.all_type = GLOBAL;
         data_.all_ambient = ambient;
     }
 };
 
-class DirectionalLight: public Light {
+class DirectionalLight : public Light
+{
 public:
     DirectionalLight(
-            const std::string &id,
-            glm::vec3 direction,
-            glm::vec3 ambient,
-            glm::vec3 diffuse,
-            glm::vec3 specular): Light(id) {
+        const std::string &id,
+        glm::vec3 direction,
+        glm::vec3 ambient,
+        glm::vec3 diffuse,
+        glm::vec3 specular) : Light(id)
+    {
 
         data_.all_type = DIRECT;
         data_.direct_spot_direction = direction;
@@ -52,17 +67,19 @@ public:
     }
 };
 
-class PointLight: public Light {
+class PointLight : public Light
+{
 public:
     PointLight(
-            const std::string &id,
-            glm::vec3 position,
-            glm::vec3 ambient,
-            glm::vec3 diffuse,
-            glm::vec3 specular,
-            float constant,
-            float linear,
-            float quadratic): Light(id) {
+        const std::string &id,
+        glm::vec3 position,
+        glm::vec3 ambient,
+        glm::vec3 diffuse,
+        glm::vec3 specular,
+        float constant,
+        float linear,
+        float quadratic) : Light(id)
+    {
 
         data_.all_type = POINT;
         data_.all_ambient = ambient;
@@ -75,17 +92,19 @@ public:
     }
 };
 
-class SpotLight: public Light {
+class SpotLight : public Light
+{
 public:
-   SpotLight(
-            const std::string &id,
-            glm::vec3 position,
-            glm::vec3 direction,
-            glm::vec3 ambient,
-            glm::vec3 diffuse,
-            glm::vec3 specular,
-            float innerDegree,
-            float outerDegree): Light(id) {
+    SpotLight(
+        const std::string &id,
+        glm::vec3 position,
+        glm::vec3 direction,
+        glm::vec3 ambient,
+        glm::vec3 diffuse,
+        glm::vec3 specular,
+        float innerDegree,
+        float outerDegree) : Light(id)
+    {
 
         data_.all_type = SPOT;
         data_.all_ambient = ambient;

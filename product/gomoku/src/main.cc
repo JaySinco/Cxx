@@ -3,7 +3,11 @@
 #include "mcts.h"
 #include "train.h"
 
-#define EXIT_WITH_USAGE(usage)  { std::cout << usage; return -1; }
+#define EXIT_WITH_USAGE(usage) \
+    {                          \
+        std::cout << usage;    \
+        return -1;             \
+    }
 
 const char *usage =
     "usage: gomoku <command>\n\n"
@@ -36,14 +40,18 @@ const char *benchmark_usage =
 std::random_device global_random_device;
 std::mt19937 global_random_engine(global_random_device());
 
-int main(int argc, char *argv[]) {
-    if (argc > 1 && strcmp(argv[1], "config") == 0) {
+int main(int argc, char *argv[])
+{
+    if (argc > 1 && strcmp(argv[1], "config") == 0)
+    {
         show_global_cfg(std::cout);
         return 0;
     }
 
-    if (argc > 1 && strcmp(argv[1], "train") == 0) {
-        if (argc == 3) {
+    if (argc > 1 && strcmp(argv[1], "train") == 0)
+    {
+        if (argc == 3)
+        {
             long long verno = std::atoi(argv[2]);
             std::shared_ptr<FIRNet> net = std::make_shared<FIRNet>(verno);
             show_global_cfg(std::cout);
@@ -54,8 +62,10 @@ int main(int argc, char *argv[]) {
         EXIT_WITH_USAGE(train_usage);
     }
 
-    if (argc > 1 && strcmp(argv[1], "play") == 0) {
-        if (argc == 4 || argc == 5) {
+    if (argc > 1 && strcmp(argv[1], "play") == 0)
+    {
+        if (argc == 4 || argc == 5)
+        {
             int itermax = TRAIN_DEEP_ITERMAX;
             if (argc == 5)
                 itermax = std::atoi(argv[4]);
@@ -63,15 +73,18 @@ int main(int argc, char *argv[]) {
             long long verno = std::atoi(argv[3]);
             auto net = std::make_shared<FIRNet>(verno);
             auto p1 = MCTSDeepPlayer(net, itermax, C_PUCT);
-            if (strcmp(argv[2], "0") == 0) {
+            if (strcmp(argv[2], "0") == 0)
+            {
                 auto p0 = HumanPlayer("human");
                 play(p0, p1, false);
             }
-            else if (strcmp(argv[2], "1") == 0) {
+            else if (strcmp(argv[2], "1") == 0)
+            {
                 auto p0 = HumanPlayer("human");
                 play(p1, p0, false);
             }
-            else if (strcmp(argv[2], "-1") == 0) {
+            else if (strcmp(argv[2], "-1") == 0)
+            {
                 auto p0 = MCTSDeepPlayer(net, itermax, C_PUCT);
                 play(p0, p1, false);
             }
@@ -80,8 +93,10 @@ int main(int argc, char *argv[]) {
         EXIT_WITH_USAGE(play_usage);
     }
 
-    if (argc > 1 && strcmp(argv[1], "benchmark") == 0) {
-        if (argc == 4 || argc == 5) {
+    if (argc > 1 && strcmp(argv[1], "benchmark") == 0)
+    {
+        if (argc == 4 || argc == 5)
+        {
             int itermax = TRAIN_DEEP_ITERMAX;
             if (argc == 5)
                 itermax = std::atoi(argv[4]);

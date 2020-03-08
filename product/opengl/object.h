@@ -1,11 +1,14 @@
 #pragma once
 #include "base.h"
 
-namespace cxx {
+namespace cxx
+{
 
-namespace gl {
+namespace gl
+{
 
-class Object: public Base {
+class Object : public Base
+{
 public:
     Object(
         const std::string &id,
@@ -28,6 +31,7 @@ public:
     void scale(float x, float y, float z);
     void scaleTo(float dx, float dy, float dz);
     glm::mat4 getModelMatrix() const;
+
 private:
     std::string model_;
     std::string shader_;
