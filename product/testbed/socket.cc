@@ -1,28 +1,27 @@
-#include <string>
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
-#include <Windows.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <gtest/gtest.h>
 #include "common/utility/logging.h"
+#include <WinSock2.h>
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <Ws2tcpip.h>
+#include <gtest/gtest.h>
+#include <openssl/err.h>
+#include <openssl/ssl.h>
+#include <string>
 
 #define CHECK_WSA_ERROR(msg, isWrong)                                              \
-    if (isWrong)                                                                   \
-    {                                                                              \
+    if (isWrong) {                                                                 \
         LOG(ERROR) << "wsa " << msg << " failed with errno " << WSAGetLastError(); \
     }                                                                              \
     ASSERT_FALSE(isWrong);
 
 #define CHECK_SSL_ERROR(msg, isWrong)             \
-    if (isWrong)                                  \
-    {                                             \
+    if (isWrong) {                                \
         LOG(ERROR) << "SSL " << msg << " failed"; \
         ERR_print_errors_fp(stdout);              \
     }                                             \
     ASSERT_FALSE(isWrong);
 
-std::wstring Utf8ToUnicode(const std::string &utf8)
+std::wstring Utf8ToUnicode(const std::string& utf8)
 {
     LPCCH ptr = utf8.c_str();
     int size = MultiByteToWideChar(CP_UTF8, 0, ptr, -1, NULL, NULL);
@@ -31,12 +30,11 @@ std::wstring Utf8ToUnicode(const std::string &utf8)
     return wstrRet;
 }
 
-void showCerts(SSL *ssl)
+void showCerts(SSL* ssl)
 {
     char line[1024];
-    X509 *cert = SSL_get_peer_certificate(ssl);
-    if (cert != NULL)
-    {
+    X509* cert = SSL_get_peer_certificate(ssl);
+    if (cert != NULL) {
         LOG(INFO) << "have X.509 certificate!";
         std::memset(line, 0, sizeof(line));
         X509_NAME_oneline(X509_get_subject_name(cert), line, sizeof(line) - 1);
@@ -45,12 +43,11 @@ void showCerts(SSL *ssl)
         X509_NAME_oneline(X509_get_issuer_name(cert), line, sizeof(line) - 1);
         LOG(INFO) << "[ISSUER ] " << line;
         X509_free(cert);
-    }
-    else
+    } else
         LOG(INFO) << "have no X.509 certificate!" << std::endl;
 }
 
-void ssl_put(SSL *ssl)
+void ssl_put(SSL* ssl)
 {
     char buf[1024];
     std::memset(buf, 0, sizeof(buf));
@@ -60,7 +57,7 @@ void ssl_put(SSL *ssl)
         LOG(INFO) << "[server] " << buf;
 }
 
-void ssl_send(SSL *ssl, const std::string &cmd)
+void ssl_send(SSL* ssl, const std::string& cmd)
 {
     SSL_write(ssl, cmd.c_str(), (int)cmd.size());
     ssl_put(ssl);
@@ -70,8 +67,8 @@ TEST(SMTP, SendEmail)
 {
     std::wcout.imbue(std::locale(""));
 
-    const char *host = "smtp.aliyun.com";
-    const char *port = "465";
+    const char* host = "smtp.aliyun.com";
+    const char* port = "465";
 
     WSADATA wsa;
     CHECK_WSA_ERROR("startup", WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -79,7 +76,7 @@ TEST(SMTP, SendEmail)
     SSL_library_init();
     OpenSSL_add_all_algorithms();
     SSL_load_error_strings();
-    SSL_CTX *ctx = SSL_CTX_new(SSLv23_client_method());
+    SSL_CTX* ctx = SSL_CTX_new(SSLv23_client_method());
     CHECK_SSL_ERROR("context", ctx == NULL)
 
     addrinfo hints;
@@ -88,11 +85,10 @@ TEST(SMTP, SendEmail)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = 0;
     hints.ai_protocol = IPPROTO_TCP;
-    addrinfo *result;
+    addrinfo* result;
     CHECK_WSA_ERROR("getaddrinfo", getaddrinfo(host, port, &hints, &result) != 0);
     SOCKET sock;
-    for (addrinfo *rp = result; rp != NULL; rp = rp->ai_next)
-    {
+    for (addrinfo* rp = result; rp != NULL; rp = rp->ai_next) {
         sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
         if (sock == INVALID_SOCKET)
             continue;
@@ -101,7 +97,7 @@ TEST(SMTP, SendEmail)
     }
     CHECK_WSA_ERROR("connect", sock == NULL)
 
-    SSL *ssl = SSL_new(ctx);
+    SSL* ssl = SSL_new(ctx);
     SSL_set_fd(ssl, (int)sock);
     CHECK_SSL_ERROR("connect", SSL_connect(ssl) == -1)
     LOG(INFO) << "connected with " << SSL_get_cipher(ssl) << " encryption";
@@ -126,7 +122,7 @@ TEST(SMTP, SendEmail)
     CHECK_WSA_ERROR("cleanup", WSACleanup() == SOCKET_ERROR)
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     google::InitGoogleLogging(argv[0]);
     testing::InitGoogleTest(&argc, argv);

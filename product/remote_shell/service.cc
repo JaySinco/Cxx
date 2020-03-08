@@ -1,24 +1,22 @@
 #define WIN32_LEAN_AND_MEAN
-#include "Windows.h"
-#include <comutil.h>
-#include <Lmcons.h>
-#include <WtsApi32.h>
-#include <Pdh.h>
-#include <array>
-#include "common/utility/logging.h"
 #include "service.h"
+#include "Windows.h"
+#include "common/utility/logging.h"
+#include <Lmcons.h>
+#include <Pdh.h>
+#include <WtsApi32.h>
+#include <array>
+#include <comutil.h>
 #define MB (1024 * 1024)
 #define GB (1024 * 1024 * 1024)
 
-namespace
-{
+namespace {
 
 std::string GetOsName()
 {
     std::string osName = "unknow";
-    OSVERSIONINFO osver = {sizeof(OSVERSIONINFO)};
-    if (GetVersionEx(&osver))
-    {
+    OSVERSIONINFO osver = { sizeof(OSVERSIONINFO) };
+    if (GetVersionEx(&osver)) {
         if (osver.dwMajorVersion == 5 && osver.dwMinorVersion == 0)
             osName = "Windows 2000";
         else if (osver.dwMajorVersion == 5 && osver.dwMinorVersion == 1)
@@ -39,12 +37,9 @@ std::string GetCurrentUserName()
 {
     DWORD maxLen = UNLEN + 1;
     char username[UNLEN + 1];
-    if (GetUserNameA(username, &maxLen))
-    {
+    if (GetUserNameA(username, &maxLen)) {
         return username;
-    }
-    else
-    {
+    } else {
         LOG(ERROR) << "failed to exec GetUserName:" << GetLastError();
         return "unknow";
     }
@@ -54,7 +49,7 @@ double GetCPURate()
 {
     HQUERY query;
     PDH_STATUS status = PdhOpenQuery(NULL, NULL, &query);
-    HCOUNTER counter = (HCOUNTER *)GlobalAlloc(GPTR, sizeof(HCOUNTER));
+    HCOUNTER counter = (HCOUNTER*)GlobalAlloc(GPTR, sizeof(HCOUNTER));
     std::string counterPath = "\\Processor Information(_Total)\\% Processor Time";
     status = PdhAddCounterA(query, LPCSTR(counterPath.c_str()), NULL, &counter);
     PDH_FMT_COUNTERVALUE pdhValue;
@@ -68,7 +63,7 @@ double GetCPURate()
     return pdhValue.doubleValue;
 }
 
-void GetMemoryStat(cxx::service::MemoryInfo &info)
+void GetMemoryStat(cxx::service::MemoryInfo& info)
 {
     MEMORYSTATUSEX mStatus;
     mStatus.dwLength = sizeof(mStatus);
@@ -77,13 +72,13 @@ void GetMemoryStat(cxx::service::MemoryInfo &info)
     info.used = double(mStatus.ullTotalPhys - mStatus.ullAvailPhys) / GB;
 }
 
-double CalculateIOSpeedInPdh(const char *counterPath)
+double CalculateIOSpeedInPdh(const char* counterPath)
 {
     HQUERY query;
     PDH_STATUS status;
     status = PdhOpenQuery(NULL, NULL, &query);
     HCOUNTER counter;
-    counter = (HCOUNTER *)GlobalAlloc(GPTR, sizeof(HCOUNTER));
+    counter = (HCOUNTER*)GlobalAlloc(GPTR, sizeof(HCOUNTER));
     status = PdhAddCounterA(query, LPCSTR(counterPath), NULL, &counter);
     PdhCollectQueryData(query);
     Sleep(100);
@@ -96,7 +91,7 @@ double CalculateIOSpeedInPdh(const char *counterPath)
     return speed;
 }
 
-void GetDiskStat(cxx::service::DiskInfo &info, const std::string &driver)
+void GetDiskStat(cxx::service::DiskInfo& info, const std::string& driver)
 {
     DWORDLONG freeBytesAvailable = 0;
     DWORDLONG totalNumberOfBytes = 0;
@@ -120,7 +115,7 @@ void GetDiskStat(cxx::service::DiskInfo &info, const std::string &driver)
     info.writeSpeed = writeSpeed / MB;
 }
 
-void GetNetworkStat(cxx::service::NetworkInfo &info)
+void GetNetworkStat(cxx::service::NetworkInfo& info)
 {
     std::string readSpeedCounterPath = "\\Network Interface(*)\\Bytes Received/sec";
     double readSpeed = CalculateIOSpeedInPdh(readSpeedCounterPath.c_str());
@@ -130,18 +125,16 @@ void GetNetworkStat(cxx::service::NetworkInfo &info)
     info.uploadSpeed = writeSpeed / MB;
 }
 
-void Exec(cxx::service::ShellRtn &rtn, const char *cmd)
+void Exec(cxx::service::ShellRtn& rtn, const char* cmd)
 {
     std::array<char, 128> buffer;
     std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd, "r"), _pclose);
-    if (!pipe)
-    {
+    if (!pipe) {
         LOG(ERROR) << "failed to popen command: " << cmd;
         rtn.success = false;
         return;
     }
-    while (fgets(buffer.data(), int(buffer.size()), pipe.get()) != nullptr)
-    {
+    while (fgets(buffer.data(), int(buffer.size()), pipe.get()) != nullptr) {
         rtn.standardOutput += buffer.data();
     }
     rtn.success = true;
@@ -149,50 +142,49 @@ void Exec(cxx::service::ShellRtn &rtn, const char *cmd)
 
 } // namespace
 
-namespace cxx
-{
+namespace cxx {
 
-namespace service
-{
+namespace service {
 
-RemoteShellService::RemoteShellService()
-{
-}
+    RemoteShellService::RemoteShellService()
+    {
+    }
 
-RemoteShellService::~RemoteShellService()
-{
-}
+    RemoteShellService::~RemoteShellService()
+    {
+    }
 
-void RemoteShellService::GetComputerInfo(ComputerInfo &_return)
-{
-    _return.osName = GetOsName();
-    _return.userName = GetCurrentUserName();
-}
+    void RemoteShellService::GetComputerInfo(ComputerInfo& _return)
+    {
+        _return.osName = GetOsName();
+        _return.userName = GetCurrentUserName();
+    }
 
-void RemoteShellService::GetCpuInfo(CpuInfo &_return)
-{
-    _return.rate = GetCPURate();
-}
+    void RemoteShellService::GetCpuInfo(CpuInfo& _return)
+    {
+        _return.rate = GetCPURate();
+    }
 
-void RemoteShellService::GetMemoryInfo(MemoryInfo &_return)
-{
-    GetMemoryStat(_return);
-}
+    void RemoteShellService::GetMemoryInfo(MemoryInfo& _return)
+    {
+        GetMemoryStat(_return);
+    }
 
-void RemoteShellService::GetDiskInfo(DiskInfo &_return, const std::string &driver)
-{
-    GetDiskStat(_return, driver);
-}
+    void RemoteShellService::GetDiskInfo(DiskInfo& _return, const std::string& driver)
+    {
+        GetDiskStat(_return, driver);
+    }
 
-void RemoteShellService::GetNetworkInfo(NetworkInfo &_return)
-{
-    GetNetworkStat(_return);
-}
+    void RemoteShellService::GetNetworkInfo(NetworkInfo& _return)
+    {
+        GetNetworkStat(_return);
+    }
 
-void RemoteShellService::Execute(ShellRtn &_return, const std::string &cmdWithArgs)
-{
-    Exec(_return, cmdWithArgs.c_str());
-}
+    void RemoteShellService::Execute(ShellRtn& _return, const std::string& cmdWithArgs)
+    {
+        Exec(_return, cmdWithArgs.c_str());
+    }
 
 } // namespace service
+
 } // namespace cxx

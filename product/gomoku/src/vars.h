@@ -1,7 +1,6 @@
 #pragma once
-
-#include <random>
 #include <iostream>
+#include <random>
 
 constexpr int FIVE_IN_ROW = 5;
 constexpr int BOARD_MAX_COL = 8;
@@ -38,7 +37,7 @@ constexpr int BOARD_SIZE = BOARD_MAX_ROW * BOARD_MAX_COL;
 constexpr int NO_MOVE_YET = -1;
 extern std::mt19937 global_random_engine;
 
-inline void show_global_cfg(std::ostream &out)
+inline void show_global_cfg(std::ostream& out)
 {
     out << "=== global configure ==="
         << "\ngame_mode=" << BOARD_MAX_ROW << "x" << BOARD_MAX_COL << "by" << FIVE_IN_ROW

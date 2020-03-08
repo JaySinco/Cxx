@@ -1,56 +1,54 @@
 #pragma once
-
+#include "game.h"
 #include <mxnet-cpp/MxNetCpp.h>
 
-#include "game.h"
-
-struct SampleData
-{
-    float data[INPUT_FEATURE_NUM * BOARD_SIZE] = {0.0f};
-    float p_label[BOARD_SIZE] = {0.0f};
-    float v_label[1] = {0.0f};
+struct SampleData {
+    float data[INPUT_FEATURE_NUM * BOARD_SIZE] = { 0.0f };
+    float p_label[BOARD_SIZE] = { 0.0f };
+    float v_label[1] = { 0.0f };
 
     void flip_verticing();
     void transpose();
 };
-std::ostream &operator<<(std::ostream &out, const SampleData &sample);
+std::ostream& operator<<(std::ostream& out, const SampleData& sample);
 
-struct MiniBatch
-{
-    float data[BATCH_SIZE * INPUT_FEATURE_NUM * BOARD_SIZE] = {0.0f};
-    float p_label[BATCH_SIZE * BOARD_SIZE] = {0.0f};
-    float v_label[BATCH_SIZE * 1] = {0.0f};
+struct MiniBatch {
+    float data[BATCH_SIZE * INPUT_FEATURE_NUM * BOARD_SIZE] = { 0.0f };
+    float p_label[BATCH_SIZE * BOARD_SIZE] = { 0.0f };
+    float v_label[BATCH_SIZE * 1] = { 0.0f };
 };
-std::ostream &operator<<(std::ostream &out, const MiniBatch &batch);
+std::ostream& operator<<(std::ostream& out, const MiniBatch& batch);
 
-class DataSet
-{
+class DataSet {
 private:
     long long index;
-    SampleData *buf;
+    SampleData* buf;
 
 public:
-    DataSet() : index(0) { buf = new SampleData[BUFFER_SIZE]; }
+    DataSet()
+        : index(0)
+    {
+        buf = new SampleData[BUFFER_SIZE];
+    }
     ~DataSet() { delete[] buf; }
     int size() const { return (index > BUFFER_SIZE) ? BUFFER_SIZE : index; }
     long long total() const { return index; }
-    void push_back(const SampleData *data)
+    void push_back(const SampleData* data)
     {
         buf[index % BUFFER_SIZE] = *data;
         ++index;
     }
-    void push_with_transform(SampleData *data);
-    const SampleData &get(int i) const
+    void push_with_transform(SampleData* data);
+    const SampleData& get(int i) const
     {
         assert(i < size());
         return buf[i];
     }
-    void make_mini_batch(MiniBatch *batch) const;
+    void make_mini_batch(MiniBatch* batch) const;
 };
-std::ostream &operator<<(std::ostream &out, const DataSet &set);
+std::ostream& operator<<(std::ostream& out, const DataSet& set);
 
-class FIRNet
-{
+class FIRNet {
     using Symbol = mxnet::cpp::Symbol;
     using Context = mxnet::cpp::Context;
     using NDArray = mxnet::cpp::NDArray;
@@ -65,7 +63,7 @@ class FIRNet
     Symbol plc, val, loss;
     NDArray data_predict, data_train, plc_label, val_label;
     Executor *plc_predict, *val_predict, *loss_train;
-    Optimizer *optimizer;
+    Optimizer* optimizer;
 
 public:
     FIRNet(long long verno);
@@ -74,14 +72,14 @@ public:
     void init_param();
     void save_param();
     void load_param();
-    void show_param(std::ostream &out);
+    void show_param(std::ostream& out);
     void build_graph();
     void bind_train();
     void bind_predict();
     float calc_init_lr();
     void adjust_lr();
     std::string make_param_file_name();
-    float train_step(const MiniBatch *batch);
-    void forward(const State &state,
-                 float value[1], std::vector<std::pair<Move, float>> &move_priors);
+    float train_step(const MiniBatch* batch);
+    void forward(const State& state,
+        float value[1], std::vector<std::pair<Move, float>>& move_priors);
 };

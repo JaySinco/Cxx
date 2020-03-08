@@ -1,14 +1,14 @@
-#include <thread>
-#include <chrono>
-#include <algorithm>
 #include "scenery.h"
 #include <GLFW/glfw3.h>
+#include <algorithm>
+#include <chrono>
+#include <thread>
 
 #define RESOURCE(relpath) (std::string("D:\\Jaysinco\\Cxx\\product\\opengl\\resources\\") + relpath)
 
 using namespace cxx::gl;
 
-Storage *gStorage;
+Storage* gStorage;
 const int gWidth = 800;
 const int gHeight = 600;
 float initCameraX = 0.0f;
@@ -20,20 +20,19 @@ bool gLMousePressed = false;
 double gLastMouseX = 0.0;
 double gLastMouseY = 0.0;
 
-void glfw_error_callback(int error, const char *desc)
+void glfw_error_callback(int error, const char* desc)
 {
     LOG(ERROR) << "glfw failed with code " << error << ", desc=\"" << desc << "\"";
 }
 
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     gCameraZ += float(-1 * gCameraMoveSpeed * yoffset);
 }
 
-void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    if (gLMousePressed)
-    {
+    if (gLMousePressed) {
         float dx = float(xpos - gLastMouseX);
         float dy = float(ypos - gLastMouseY);
         float dz = std::hypot(dx, dy);
@@ -54,12 +53,10 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 //     }
 // }
 
-void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_LEFT)
-    {
-        switch (action)
-        {
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        switch (action) {
         case GLFW_PRESS:
             gLMousePressed = true;
             break;
@@ -68,10 +65,8 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
             break;
         }
     }
-    if (button == GLFW_MOUSE_BUTTON_RIGHT)
-    {
-        switch (action)
-        {
+    if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+        switch (action) {
         case GLFW_PRESS:
             gStorage->get<Object>("OB_item")->reset();
             gCameraZ = initCameraZ;
@@ -80,7 +75,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
     }
 }
 
-GLFWwindow *initForWindow(int width, int height, const std::string &title)
+GLFWwindow* initForWindow(int width, int height, const std::string& title)
 {
     glfwSetErrorCallback(glfw_error_callback);
     glfwInit();
@@ -88,9 +83,8 @@ GLFWwindow *initForWindow(int width, int height, const std::string &title)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    GLFWwindow *window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
-    if (window == NULL)
-    {
+    GLFWwindow* window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
+    if (window == NULL) {
         LOG(ERROR) << "failed to create glfw window";
         glfwTerminate();
         exit(-1);
@@ -101,16 +95,14 @@ GLFWwindow *initForWindow(int width, int height, const std::string &title)
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetScrollCallback(window, scroll_callback);
     // initialize OpenGL loader
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         LOG(ERROR) << "failed to initialize glad";
         exit(-1);
     }
     return window;
 }
 
-struct SceneConfig
-{
+struct SceneConfig {
     std::string id;
     std::string model_path;
     std::string texture_path;
@@ -118,7 +110,7 @@ struct SceneConfig
     glm::mat4 xform_default;
 };
 
-void setup(Storage &repo, const std::string &target)
+void setup(Storage& repo, const std::string& target)
 {
     SceneConfig options[] = {
         {
@@ -136,7 +128,7 @@ void setup(Storage &repo, const std::string &target)
             Object::rotateY(-45.0f) * Object::rotateZ(90.0f),
         },
     };
-    auto opt = std::find_if(std::begin(options), std::end(options), [&](const SceneConfig &c) {
+    auto opt = std::find_if(std::begin(options), std::end(options), [&](const SceneConfig& c) {
         return c.id == target;
     });
     if (opt == std::end(options))
@@ -160,7 +152,7 @@ void setup(Storage &repo, const std::string &target)
     gCameraZ = initCameraZ;
     gCameraMoveSpeed = std::hypot(dz, dxy) * 0.1f;
     repo.put<Camera>("CA_main", 45.0f, (float)gWidth / gHeight,
-                     gCameraMoveSpeed, gCameraMoveSpeed * 1000);
+        gCameraMoveSpeed, gCameraMoveSpeed * 1000);
     scene->putCamera("CA_main");
     // light
     auto ambient = glm::vec3(0.2f, 0.2f, 0.2f);
@@ -176,15 +168,14 @@ void setup(Storage &repo, const std::string &target)
     auto quadratic = 0.032f;
     auto position = glm::vec3(initCameraX, initCameraY, initCameraZ);
     repo.put<PointLight>("LI_point", position, ambient, diffuse,
-                         specular, constant, linear, quadratic);
+        specular, constant, linear, quadratic);
 
     auto innerDegree = 1.5f;
     auto outerDegree = 15.6f;
     repo.put<SpotLight>("LI_spot", position, direction, ambient,
-                        diffuse, specular, innerDegree, outerDegree);
+        diffuse, specular, innerDegree, outerDegree);
 
-    switch (opt->light_type)
-    {
+    switch (opt->light_type) {
     case Light::DIRECT:
         scene->putLight("LI_direct");
         break;
@@ -200,12 +191,12 @@ void setup(Storage &repo, const std::string &target)
     }
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     google::InitGoogleLogging(argv[0]);
     FLAGS_logtostderr = 1;
     FLAGS_minloglevel = 0;
-    GLFWwindow *window = initForWindow(gWidth, gHeight, "OpenGL_Functest");
+    GLFWwindow* window = initForWindow(gWidth, gHeight, "OpenGL_Functest");
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     gStorage = new Storage("ST_global");
@@ -215,8 +206,7 @@ int main(int argc, char *argv[])
         setup(*gStorage, argv[1]);
     auto scene = gStorage->get<Scenery>("SC_functest");
     auto camera = gStorage->get<Camera>("CA_main");
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         camera->moveTo(initCameraX, initCameraY, gCameraZ);

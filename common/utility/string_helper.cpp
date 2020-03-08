@@ -1,17 +1,15 @@
+#include "string_helper.h"
+#include "logging.h"
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include "logging.h"
-#include "string_helper.h"
 
-namespace cxx
-{
+namespace cxx {
 
-static std::string encode(const std::wstring &str, unsigned codePage)
+static std::string encode(const std::wstring& str, unsigned codePage)
 {
     int len = WideCharToMultiByte(codePage, 0, str.c_str(), -1, NULL, 0, NULL, NULL);
-    auto buf = new char[len]{};
-    if (0 == WideCharToMultiByte(codePage, 0, str.c_str(), -1, buf, len, NULL, NULL))
-    {
+    auto buf = new char[len] {};
+    if (0 == WideCharToMultiByte(codePage, 0, str.c_str(), -1, buf, len, NULL, NULL)) {
         LOG_LAST_WIN_ERROR("failed to encode wstring");
     }
     auto ret = std::string(buf);
@@ -19,12 +17,11 @@ static std::string encode(const std::wstring &str, unsigned codePage)
     return ret;
 }
 
-static std::wstring decode(const std::string &str, unsigned codePage)
+static std::wstring decode(const std::string& str, unsigned codePage)
 {
     int len = MultiByteToWideChar(codePage, 0, str.c_str(), -1, NULL, 0);
-    auto buf = new wchar_t[len]{};
-    if (0 == MultiByteToWideChar(codePage, 0, str.c_str(), -1, buf, len))
-    {
+    auto buf = new wchar_t[len] {};
+    if (0 == MultiByteToWideChar(codePage, 0, str.c_str(), -1, buf, len)) {
         LOG_LAST_WIN_ERROR("failed to decode string");
     }
     auto ret = std::wstring(buf);
@@ -32,12 +29,12 @@ static std::wstring decode(const std::string &str, unsigned codePage)
     return ret;
 }
 
-std::string encodeAnsi(const std::wstring &str)
+std::string encodeAnsi(const std::wstring& str)
 {
     return encode(str, CP_ACP);
 }
 
-std::wstring decodeUtf8(const std::string &str)
+std::wstring decodeUtf8(const std::string& str)
 {
     return decode(str, CP_UTF8);
 }

@@ -1,19 +1,18 @@
 #pragma once
+#include <atomic>
+#include <map>
+#include <string>
 #define OEMRESOURCE
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <string>
-#include <atomic>
-#include <map>
 
-class ScreenLocker
-{
+class ScreenLocker {
 public:
     static void Popup(
-        const std::string &password_ascii = "",
-        const std::string &hintWord_u8 = u8"请输入密码: ",
-        const std::string &backgroundFile_u8 = u8"background.bmp",
-        const std::string &cursorFile_u8 = u8"point.cur",
+        const std::string& password_ascii = "",
+        const std::string& hintWord_u8 = u8"请输入密码: ",
+        const std::string& backgroundFile_u8 = u8"background.bmp",
+        const std::string& cursorFile_u8 = u8"point.cur",
         bool blockMouseInput = false,
         bool blockKeyboardInput = false,
         int msPinFreq = 500);
@@ -21,10 +20,9 @@ public:
     static void Close();
 
 private:
-    class ReplaceSystemCursor
-    {
+    class ReplaceSystemCursor {
     public:
-        ReplaceSystemCursor(const std::wstring &iconFile);
+        ReplaceSystemCursor(const std::wstring& iconFile);
         ~ReplaceSystemCursor();
 
     private:

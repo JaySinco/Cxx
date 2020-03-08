@@ -1,16 +1,15 @@
-#include "screen_locker.h"
-#include <thread>
-#include <chrono>
 #include "common/utility/logging.h"
+#include "screen_locker.h"
+#include <chrono>
+#include <thread>
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     google::InitGoogleLogging(argv[0]);
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     FLAGS_logtostderr = 1;
     FLAGS_minloglevel = 0;
-    if (!SetProcessDPIAware())
-    {
+    if (!SetProcessDPIAware()) {
         LOG_LAST_WIN_ERROR("failed to set process dpi aware");
     }
     std::thread(

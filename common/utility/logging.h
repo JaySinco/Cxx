@@ -1,14 +1,13 @@
 #pragma once
 #define GLOG_NO_ABBREVIATED_SEVERITIES
 #define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
 #include <gflags/gflags.h>
+#include <glog/logging.h>
 #define TRY_BEGIN \
-    try           \
-    {
+    try {
 #define CATCH_ALL                                            \
     }                                                        \
-    catch (const std::exception &e)                          \
+    catch (const std::exception& e)                          \
     {                                                        \
         LOG(ERROR) << "uncaught exception <"                 \
                    << typeid(e).name() << ">: " << e.what(); \
@@ -24,10 +23,9 @@
 #endif
 #if __cplusplus >= 201703L
 #include <pprint/pprint.hpp>
-namespace cxx
-{
+namespace cxx {
 template <typename T>
-std::string tostr(T &&Arg)
+std::string tostr(T&& Arg)
 {
     std::ostringstream ss;
     pprint::PrettyPrinter printer(ss);

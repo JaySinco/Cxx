@@ -1,20 +1,19 @@
-#include <iomanip>
-
 #include "mcts.h"
+#include <iomanip>
 
 MCTSNode::~MCTSNode()
 {
-    for (const auto &mn : children)
+    for (const auto& mn : children)
         delete mn.second;
 }
 
-void MCTSNode::expand(const std::vector<std::pair<Move, float>> &set)
+void MCTSNode::expand(const std::vector<std::pair<Move, float>>& set)
 {
-    for (auto &mvp : set)
+    for (auto& mvp : set)
         children[mvp.first] = new MCTSNode(this, mvp.second);
 }
 
-MCTSNode *MCTSNode::cut(Move occurred)
+MCTSNode* MCTSNode::cut(Move occurred)
 {
     auto citer = children.find(occurred);
     assert(citer != children.end());
@@ -24,15 +23,13 @@ MCTSNode *MCTSNode::cut(Move occurred)
     return child;
 }
 
-std::pair<Move, MCTSNode *> MCTSNode::select(float c_puct) const
+std::pair<Move, MCTSNode*> MCTSNode::select(float c_puct) const
 {
-    std::pair<Move, MCTSNode *> picked(Move(NO_MOVE_YET), nullptr);
+    std::pair<Move, MCTSNode*> picked(Move(NO_MOVE_YET), nullptr);
     float max_value = -1 * std::numeric_limits<float>::max();
-    for (const auto &mn : children)
-    {
+    for (const auto& mn : children) {
         float value = mn.second->value(c_puct);
-        if (value > max_value)
-        {
+        if (value > max_value) {
             picked = mn;
             max_value = value;
         }
@@ -46,13 +43,11 @@ Move MCTSNode::act_by_most_visted() const
     Move act(NO_MOVE_YET);
     if (DEBUG_MCTS_PROB)
         std::cout << "(ROOT): " << *this << std::endl;
-    for (const auto &mn : children)
-    {
+    for (const auto& mn : children) {
         if (DEBUG_MCTS_PROB)
             std::cout << mn.first << ": " << *mn.second << std::endl;
         auto vn = mn.second->visits;
-        if (vn > max_visit)
-        {
+        if (vn > max_visit) {
             act = mn.first;
             max_visit = vn;
         }
@@ -62,15 +57,14 @@ Move MCTSNode::act_by_most_visted() const
 
 Move MCTSNode::act_by_prob(float mcts_move_priors[BOARD_SIZE], float temp) const
 {
-    float move_priors_buffer[BOARD_SIZE] = {0.0f};
+    float move_priors_buffer[BOARD_SIZE] = { 0.0f };
     if (mcts_move_priors == nullptr)
         mcts_move_priors = move_priors_buffer;
     std::map<int, float> move_priors_map;
     if (DEBUG_MCTS_PROB)
         std::cout << "(ROOT): " << *this << std::endl;
     float alpha = -1 * std::numeric_limits<float>::max();
-    for (const auto &mn : children)
-    {
+    for (const auto& mn : children) {
         if (DEBUG_MCTS_PROB)
             std::cout << mn.first << ": " << *mn.second << std::endl;
         auto vn = mn.second->visits;
@@ -79,14 +73,12 @@ Move MCTSNode::act_by_prob(float mcts_move_priors[BOARD_SIZE], float temp) const
             alpha = move_priors_map[mn.first.z()];
     }
     float denominator = 0;
-    for (auto &mn : move_priors_map)
-    {
+    for (auto& mn : move_priors_map) {
         float value = std::exp(mn.second - alpha);
         move_priors_map[mn.first] = value;
         denominator += value;
     }
-    for (auto &mn : move_priors_map)
-    {
+    for (auto& mn : move_priors_map) {
         mcts_move_priors[mn.first] = mn.second / denominator;
     }
     float check_sum = 0;
@@ -115,13 +107,11 @@ void gen_ran_dirichlet(const size_t K, float alpha, float theta[])
 {
     std::gamma_distribution<float> gamma(alpha, 1.0f);
     float norm = 0.0;
-    for (size_t i = 0; i < K; i++)
-    {
+    for (size_t i = 0; i < K; i++) {
         theta[i] = gamma(global_random_engine);
         norm += theta[i];
     }
-    for (size_t i = 0; i < K; i++)
-    {
+    for (size_t i = 0; i < K; i++) {
         theta[i] /= norm;
     }
 }
@@ -131,8 +121,7 @@ void MCTSNode::add_noise_to_child_prior(float noise_rate)
     auto noise_added = new float[children.size()];
     gen_ran_dirichlet(children.size(), DIRICHLET_ALPHA, noise_added);
     int prior_cnt = 0;
-    for (auto &item : children)
-    {
+    for (auto& item : children) {
         item.second->prior = (1 - noise_rate) * item.second->prior + noise_rate * noise_added[prior_cnt];
         ++prior_cnt;
     }
@@ -147,7 +136,7 @@ float MCTSNode::value(float c_puct) const
     return quality + (c_puct * prior * std::sqrt(N) / n);
 }
 
-std::ostream &operator<<(std::ostream &out, const MCTSNode &node)
+std::ostream& operator<<(std::ostream& out, const MCTSNode& node)
 {
     out << "MCTSNode(" << node.parent << "): "
         << std::setw(3) << node.children.size() << " children, ";
@@ -163,7 +152,8 @@ std::ostream &operator<<(std::ostream &out, const MCTSNode &node)
 }
 
 MCTSPurePlayer::MCTSPurePlayer(int itermax, float c_puct)
-    : itermax(itermax), c_puct(c_puct)
+    : itermax(itermax)
+    , c_puct(c_puct)
 {
     make_id();
     root = new MCTSNode(nullptr, 1.0f);
@@ -188,28 +178,24 @@ void MCTSPurePlayer::reset()
     root = new MCTSNode(nullptr, 1.0f);
 }
 
-Move MCTSPurePlayer::play(const State &state)
+Move MCTSPurePlayer::play(const State& state)
 {
     if (!(state.get_last().z() == NO_MOVE_YET) && !root->is_leaf())
         swap_root(root->cut(state.get_last()));
-    for (int i = 0; i < itermax; ++i)
-    {
+    for (int i = 0; i < itermax; ++i) {
         State state_copied(state);
-        MCTSNode *node = root;
-        while (!node->is_leaf())
-        {
+        MCTSNode* node = root;
+        while (!node->is_leaf()) {
             auto move_node = node->select(c_puct);
             node = move_node.second;
             state_copied.next(move_node.first);
         }
         Color enemy_side = state_copied.current();
         Color winner = state_copied.get_winner();
-        if (!state_copied.over())
-        {
+        if (!state_copied.over()) {
             int n_options = state_copied.get_options().size();
             std::vector<std::pair<Move, float>> move_priors;
-            for (const auto mv : state_copied.get_options())
-            {
+            for (const auto mv : state_copied.get_options()) {
                 move_priors.push_back(std::make_pair(mv, 1.0f / float(n_options)));
             }
             node->expand(move_priors);
@@ -230,7 +216,9 @@ Move MCTSPurePlayer::play(const State &state)
 }
 
 MCTSDeepPlayer::MCTSDeepPlayer(std::shared_ptr<FIRNet> nn, int itermax, float c_puct)
-    : itermax(itermax), c_puct(c_puct), net(nn)
+    : itermax(itermax)
+    , c_puct(c_puct)
+    , net(nn)
 {
     make_id();
     root = new MCTSNode(nullptr, 1.0f);
@@ -249,31 +237,26 @@ void MCTSDeepPlayer::reset()
     root = new MCTSNode(nullptr, 1.0f);
 }
 
-void MCTSDeepPlayer::think(int itermax, float c_puct, const State &state,
-                           std::shared_ptr<FIRNet> net, MCTSNode *root, bool add_noise_to_root)
+void MCTSDeepPlayer::think(int itermax, float c_puct, const State& state,
+    std::shared_ptr<FIRNet> net, MCTSNode* root, bool add_noise_to_root)
 {
     if (add_noise_to_root)
         root->add_noise_to_child_prior(NOISE_RATE);
-    for (int i = 0; i < itermax; ++i)
-    {
+    for (int i = 0; i < itermax; ++i) {
         State state_copied(state);
-        MCTSNode *node = root;
-        while (!node->is_leaf())
-        {
+        MCTSNode* node = root;
+        while (!node->is_leaf()) {
             auto move_node = node->select(c_puct);
             node = move_node.second;
             state_copied.next(move_node.first);
         }
         float leaf_value;
-        if (!state_copied.over())
-        {
+        if (!state_copied.over()) {
             std::vector<std::pair<Move, float>> net_move_priors;
             net->forward(state_copied, &leaf_value, net_move_priors);
             node->expand(net_move_priors);
             leaf_value *= -1;
-        }
-        else
-        {
+        } else {
             if (state_copied.get_winner() != Color::Empty)
                 leaf_value = 1.0f;
             else
@@ -283,7 +266,7 @@ void MCTSDeepPlayer::think(int itermax, float c_puct, const State &state,
     }
 }
 
-Move MCTSDeepPlayer::play(const State &state)
+Move MCTSDeepPlayer::play(const State& state)
 {
     if (!(state.get_last().z() == NO_MOVE_YET) && !root->is_leaf())
         swap_root(root->cut(state.get_last()));

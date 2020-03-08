@@ -1,16 +1,14 @@
-#include <iostream>
-#include <iomanip>
-#include <string>
-#include <sstream>
-#include <map>
-
 #include "game.h"
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <string>
 
 Color operator~(const Color c)
 {
     Color opposite;
-    switch (c)
-    {
+    switch (c) {
     case Color::Black:
         opposite = Color::White;
         break;
@@ -25,10 +23,9 @@ Color operator~(const Color c)
     return opposite;
 }
 
-std::ostream &operator<<(std::ostream &out, Color c)
+std::ostream& operator<<(std::ostream& out, Color c)
 {
-    switch (c)
-    {
+    switch (c) {
     case Color::Empty:
         out << ((COLOR_OCCUPY_SPACE == 2) ? "  " : " ");
         break;
@@ -42,13 +39,13 @@ std::ostream &operator<<(std::ostream &out, Color c)
     return out;
 }
 
-std::ostream &operator<<(std::ostream &out, Move mv)
+std::ostream& operator<<(std::ostream& out, Move mv)
 {
     return out << "(" << std::setw(2) << mv.r() << ", "
                << std::setw(2) << mv.c() << ")";
 }
 
-void Board::push_valid(std::vector<Move> &set) const
+void Board::push_valid(std::vector<Move>& set) const
 {
     for (int i = 0; i < BOARD_SIZE; ++i)
         if (get(Move(i)) == Color::Empty)
@@ -63,16 +60,13 @@ bool Board::win_from(Move mv) const
         return false;
     Color side = get(mv);
     assert(side != Color::Empty);
-    int direct[4][2] = {{0, 1}, {1, 0}, {-1, 1}, {1, 1}};
-    int sign[2] = {1, -1};
-    for (auto d : direct)
-    {
+    int direct[4][2] = { { 0, 1 }, { 1, 0 }, { -1, 1 }, { 1, 1 } };
+    int sign[2] = { 1, -1 };
+    for (auto d : direct) {
         int total = 0;
-        for (auto s : sign)
-        {
+        for (auto s : sign) {
             Move probe = mv;
-            while (get(probe) == side)
-            {
+            while (get(probe) == side) {
                 ++total;
                 auto r = probe.r() + d[0] * s;
                 auto c = probe.c() + d[1] * s;
@@ -81,15 +75,14 @@ bool Board::win_from(Move mv) const
                 probe = Move(r, c);
             }
         }
-        if (total - 1 >= FIVE_IN_ROW)
-        {
+        if (total - 1 >= FIVE_IN_ROW) {
             return true;
         }
     }
     return false;
 }
 
-std::ostream &operator<<(std::ostream &out, const Board &board)
+std::ostream& operator<<(std::ostream& out, const Board& board)
 {
     if (COLOR_OCCUPY_SPACE == 2)
         out << " ";
@@ -97,8 +90,7 @@ std::ostream &operator<<(std::ostream &out, const Board &board)
     for (int c = 0; c < BOARD_MAX_COL; ++c)
         out << std::right << std::setw(COLOR_OCCUPY_SPACE) << c % 10 << " ";
     out << "\n";
-    for (int r = 0; r < BOARD_MAX_ROW; ++r)
-    {
+    for (int r = 0; r < BOARD_MAX_ROW; ++r) {
         out << std::right << std::setw(COLOR_OCCUPY_SPACE) << r % 10;
         for (int c = 0; c < BOARD_MAX_COL; ++c)
             out << "|" << board.get(Move(r, c));
@@ -116,10 +108,8 @@ Color State::current() const
 
 void State::fill_feature_array(float data[INPUT_FEATURE_NUM * BOARD_SIZE]) const
 {
-    if (last.z() == NO_MOVE_YET)
-    {
-        if (INPUT_FEATURE_NUM > 3)
-        {
+    if (last.z() == NO_MOVE_YET) {
+        if (INPUT_FEATURE_NUM > 3) {
             for (int r = 0; r < BOARD_MAX_ROW; ++r)
                 for (int c = 0; c < BOARD_MAX_COL; ++c)
                     data[3 * BOARD_SIZE + r * BOARD_MAX_COL + c] = 1.0f;
@@ -129,10 +119,8 @@ void State::fill_feature_array(float data[INPUT_FEATURE_NUM * BOARD_SIZE]) const
     auto own_side = current();
     auto enemy_side = ~own_side;
     float first = first_hand() ? 1.0f : 0.0f;
-    for (int r = 0; r < BOARD_MAX_ROW; ++r)
-    {
-        for (int c = 0; c < BOARD_MAX_COL; ++c)
-        {
+    for (int r = 0; r < BOARD_MAX_ROW; ++r) {
+        for (int c = 0; c < BOARD_MAX_COL; ++c) {
             auto side = board.get(Move(r, c));
             if (side == own_side)
                 data[r * BOARD_MAX_COL + c] = 1.0f;
@@ -164,7 +152,7 @@ Color State::next_rand_till_end()
     return winner;
 }
 
-std::ostream &operator<<(std::ostream &out, const State &state)
+std::ostream& operator<<(std::ostream& out, const State& state)
 {
     if (state.last.z() == NO_MOVE_YET)
         return out << state.board << "last move: None";
@@ -172,20 +160,20 @@ std::ostream &operator<<(std::ostream &out, const State &state)
         return out << state.board << "last move: " << ~state.current() << state.last;
 }
 
-Player &play(Player &p1, Player &p2, bool silent)
+Player& play(Player& p1, Player& p2, bool silent)
 {
-    const std::map<Color, Player *> player_color{
-        {Color::Black, &p1},
-        {Color::White, &p2},
-        {Color::Empty, nullptr}};
+    const std::map<Color, Player*> player_color {
+        { Color::Black, &p1 },
+        { Color::White, &p2 },
+        { Color::Empty, nullptr }
+    };
     auto game = State();
     p1.reset();
     p2.reset();
     int turn = 0;
     if (!silent)
         std::cout << game << std::endl;
-    while (!game.over())
-    {
+    while (!game.over()) {
         auto player = player_color.at(game.current());
         auto act = player->play(game);
         game.next(act);
@@ -200,26 +188,23 @@ Player &play(Player &p1, Player &p2, bool silent)
     return *winner;
 }
 
-float benchmark(Player &p1, Player &p2, int round, bool silent)
+float benchmark(Player& p1, Player& p2, int round, bool silent)
 {
     assert(round > 0);
     int p1win = 0, p2win = 0, even = 0;
     Player *temp = nullptr, *pblack = &p1, *pwhite = &p2;
-    for (int i = 0; i < round; ++i)
-    {
+    for (int i = 0; i < round; ++i) {
         temp = pblack, pblack = pwhite, pwhite = temp;
-        Player *winner = &play(*pblack, *pwhite);
+        Player* winner = &play(*pblack, *pwhite);
         if (winner == nullptr)
             ++even;
         else if (winner == &p1)
             ++p1win;
-        else
-        {
+        else {
             assert(winner == &p2);
             ++p2win;
         }
-        if (!silent)
-        {
+        if (!silent) {
             std::cout << std::setfill('0')
                       << "\rscore: total=" << std::setw(4) << i + 1 << ", "
                       << p1.name() << "=" << std::setw(4) << p1win << ", "
@@ -227,22 +212,20 @@ float benchmark(Player &p1, Player &p2, int round, bool silent)
             std::cout.flush();
         }
     }
-    if (!silent)
-    {
+    if (!silent) {
         std::cout << std::endl;
     }
     float p1prob = float(p1win) / float(round);
     float p2prob = float(p2win) / float(round);
     float eprob = float(even) / float(round);
-    if (!silent)
-    {
+    if (!silent) {
         std::cout << "benchmark player win probality: " << p1.name() << "=" << p1prob << ", "
                   << p2.name() << "=" << p2prob << ", even=" << eprob << ", sim=" << round << std::endl;
     }
     return p1prob;
 }
 
-bool HumanPlayer::get_move(int &row, int &col)
+bool HumanPlayer::get_move(int& row, int& col)
 {
     std::string line, srow;
     if (!std::getline(std::cin, line))
@@ -256,15 +239,13 @@ bool HumanPlayer::get_move(int &row, int &col)
     return true;
 }
 
-Move HumanPlayer::play(const State &state)
+Move HumanPlayer::play(const State& state)
 {
     int col, row;
-    while (true)
-    {
+    while (true) {
         std::cout << state.current() << "(" << id << "): ";
         std::cout.flush();
-        if (get_move(row, col))
-        {
+        if (get_move(row, col)) {
             auto mv = Move(row, col);
             if (state.valid(mv))
                 return mv;

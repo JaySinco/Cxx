@@ -1,8 +1,8 @@
 #include "screen_locker.h"
-#include <future>
-#include <thread>
 #include "common/utility/logging.h"
 #include "common/utility/string_helper.h"
+#include <future>
+#include <thread>
 
 using namespace cxx;
 
@@ -21,17 +21,16 @@ std::wstring ScreenLocker::backgroundFile;
 std::atomic<bool> ScreenLocker::done = true;
 
 void ScreenLocker::Popup(
-    const std::string &password_ascii,
-    const std::string &hintWord_u8,
-    const std::string &backgroundFile_u8,
-    const std::string &cursorFile_u8,
+    const std::string& password_ascii,
+    const std::string& hintWord_u8,
+    const std::string& backgroundFile_u8,
+    const std::string& cursorFile_u8,
     bool blockMouseInput,
     bool blockKeyboardInput,
     int msPinFreq)
 {
     bool expected = true;
-    if (!done.compare_exchange_strong(expected, false))
-    {
+    if (!done.compare_exchange_strong(expected, false)) {
         LOG(ERROR) << "another screen locker is already running";
         return;
     }
@@ -50,37 +49,31 @@ void ScreenLocker::Popup(
     initScreen();
     ReplaceSystemCursor cursorGuard(curFile);
     mouseHook = SetWindowsHookEx(WH_MOUSE_LL, mouseProc, GetModuleHandle(NULL), 0);
-    if (mouseHook == NULL)
-    {
+    if (mouseHook == NULL) {
         LOG_LAST_WIN_ERROR("failed to set mouse hook");
     }
     keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboardProc, GetModuleHandle(NULL), 0);
-    if (keyboardHook == NULL)
-    {
+    if (keyboardHook == NULL) {
         LOG_LAST_WIN_ERROR("failed to set keyboard hook");
     }
     updateScreen();
     auto background = std::async(std::launch::async, [=] {
-        while (!done)
-        {
+        while (!done) {
             std::this_thread::sleep_for(std::chrono::milliseconds(msPinFreq));
             BringWindowToTop(hwnd);
         }
         LOG(INFO) << "background task stopped";
     });
     MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0))
-    {
+    while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
     done = true;
-    if (!UnhookWindowsHookEx(mouseHook))
-    {
+    if (!UnhookWindowsHookEx(mouseHook)) {
         LOG_LAST_WIN_ERROR("failed to unset mouse hook");
     }
-    if (!UnhookWindowsHookEx(keyboardHook))
-    {
+    if (!UnhookWindowsHookEx(keyboardHook)) {
         LOG_LAST_WIN_ERROR("failed to unset keyboard hook");
     }
     DestroyWindow(hwnd);
@@ -91,8 +84,7 @@ void ScreenLocker::Popup(
 
 void ScreenLocker::Close()
 {
-    if (!done && hwnd != NULL)
-    {
+    if (!done && hwnd != NULL) {
         PostMessage(hwnd, WM_QUIT, 0, NULL);
     }
 }
@@ -101,7 +93,7 @@ void ScreenLocker::initScreen()
 {
     screenWidth = GetSystemMetrics(SM_CXSCREEN);
     screenHeight = GetSystemMetrics(SM_CYSCREEN);
-    WNDCLASS wc = {0};
+    WNDCLASS wc = { 0 };
     wc.lpszClassName = TEXT("ScreenLocker");
     wc.lpfnWndProc = windowProc;
     DWORD r, g, b;
@@ -113,14 +105,14 @@ void ScreenLocker::initScreen()
     hwnd = CreateWindowEx(
         WS_EX_TOOLWINDOW | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
         wc.lpszClassName, // Window class
-        TEXT(""),         // Window text
-        WS_POPUP,         // Window style
+        TEXT(""), // Window text
+        WS_POPUP, // Window style
         // Size and position
         0, 0, screenWidth, screenHeight,
-        NULL,                  // Parent window
-        NULL,                  // Menu
+        NULL, // Parent window
+        NULL, // Menu
         GetModuleHandle(NULL), // Instance handle
-        NULL                   // Additional application data
+        NULL // Additional application data
     );
     // SetLayeredWindowAttributes(hwnd, NULL, BYTE(255 * alpha), LWA_ALPHA);
 }
@@ -131,15 +123,14 @@ void ScreenLocker::updateScreen()
     // 背景
     RECT region;
     GetClientRect(hwnd, &region);
-    SIZE area = {region.right - region.left, region.bottom - region.top};
+    SIZE area = { region.right - region.left, region.bottom - region.top };
     HDC hdc = GetDC(hwnd);
     HDC hBitmapDC = CreateCompatibleDC(hdc);
     HBITMAP hBitmap = (HBITMAP)LoadImageW(
         NULL, backgroundFile.c_str(),
         IMAGE_BITMAP, screenWidth, screenHeight,
         LR_DEFAULTCOLOR | LR_CREATEDIBSECTION | LR_LOADFROMFILE);
-    if (hBitmap == NULL)
-    {
+    if (hBitmap == NULL) {
         LOG_LAST_WIN_ERROR("failed to load bitmap");
         Close();
         return;
@@ -148,20 +139,20 @@ void ScreenLocker::updateScreen()
     // 绘图
     const int fontHeight = screenWidth / 42;
     HFONT hFont = CreateFontW(
-        fontHeight,            // height
-        0,                     // width
-        0,                     // escapenment,
-        0,                     // orientation,
-        600,                   // weight,
-        FALSE,                 // italic,
-        FALSE,                 // underline,
-        FALSE,                 // strikeOut,
-        DEFAULT_CHARSET,       // charset,
-        OUT_CHARACTER_PRECIS,  // outPrecision,
+        fontHeight, // height
+        0, // width
+        0, // escapenment,
+        0, // orientation,
+        600, // weight,
+        FALSE, // italic,
+        FALSE, // underline,
+        FALSE, // strikeOut,
+        DEFAULT_CHARSET, // charset,
+        OUT_CHARACTER_PRECIS, // outPrecision,
         CLIP_CHARACTER_PRECIS, // clipPrecision,
-        DEFAULT_QUALITY,       // quality,
-        FF_DONTCARE,           // pitchAndFamily,
-        L"华文细黑"            // facename
+        DEFAULT_QUALITY, // quality,
+        FF_DONTCARE, // pitchAndFamily,
+        L"华文细黑" // facename
     );
     COLORREF color = RGB(9, 163, 153);
     HFONT hOldFont = (HFONT)SelectObject(hBitmapDC, hFont);
@@ -201,7 +192,7 @@ void ScreenLocker::updateScreen()
     bf.BlendOp = AC_SRC_OVER;
     bf.BlendFlags = 0;
     bf.SourceConstantAlpha = 255;
-    POINT pt = {0, 0};
+    POINT pt = { 0, 0 };
     UpdateLayeredWindow(hwnd, hdc, NULL, &area, hBitmapDC, &pt, 0, &bf, ULW_ALPHA);
     DeleteObject(hBitmap);
     DeleteDC(hBitmapDC);
@@ -220,10 +211,8 @@ void ScreenLocker::drawRectBorder(HDC hdc, int left, int top, int right, int bot
 
 LRESULT CALLBACK ScreenLocker::windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    switch (message)
-    {
-    case WM_PAINT:
-    {
+    switch (message) {
+    case WM_PAINT: {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
         EndPaint(hwnd, &ps);
@@ -238,8 +227,7 @@ LRESULT CALLBACK ScreenLocker::mouseProc(INT nCode, WPARAM wParam, LPARAM lParam
 {
     PMSLLHOOKSTRUCT p = (PMSLLHOOKSTRUCT)lParam;
     // don't intercept when p->flags=true
-    if (nCode < 0 || p->flags)
-    {
+    if (nCode < 0 || p->flags) {
         return CallNextHookEx(mouseHook, nCode, wParam, lParam);
     }
     VLOG(1) << "mouse: x=" << p->pt.x << ", y=" << p->pt.y;
@@ -253,37 +241,29 @@ LRESULT CALLBACK ScreenLocker::keyboardProc(INT nCode, WPARAM wParam, LPARAM lPa
 {
     PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT)lParam;
     // don't intercept when p->flags=true
-    if (nCode < 0 || p->flags)
-    {
+    if (nCode < 0 || p->flags) {
         return CallNextHookEx(keyboardHook, nCode, wParam, lParam);
     }
     VLOG(1) << "keyboard: vk=" << p->vkCode << ", scan=" << p->scanCode;
-    if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
-    {
-        switch (p->vkCode)
-        {
+    if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
+        switch (p->vkCode) {
         case VK_BACK:
-            if (inputPwd.size() > 0)
-            {
+            if (inputPwd.size() > 0) {
                 inputPwd.pop_back();
                 updateScreen();
             }
             break;
         case VK_RETURN:
-            if (inputPwd == unlockCode)
-            {
+            if (inputPwd == unlockCode) {
                 Close();
-            }
-            else
-            {
+            } else {
                 inputPwd.clear();
                 updateScreen();
             }
             break;
         default:
             char c = MapVirtualKeyA(p->vkCode, MAPVK_VK_TO_CHAR);
-            if (c && isprint(c))
-            {
+            if (c && isprint(c)) {
                 inputPwd += c;
                 updateScreen();
             }
@@ -293,11 +273,10 @@ LRESULT CALLBACK ScreenLocker::keyboardProc(INT nCode, WPARAM wParam, LPARAM lPa
     return blockKeyboard ? 1 : 0;
 }
 
-ScreenLocker::ReplaceSystemCursor::ReplaceSystemCursor(const std::wstring &iconFile)
+ScreenLocker::ReplaceSystemCursor::ReplaceSystemCursor(const std::wstring& iconFile)
 {
     HCURSOR hUserCursor = LoadCursorFromFileW(iconFile.c_str());
-    if (hUserCursor == NULL)
-    {
+    if (hUserCursor == NULL) {
         LOG_LAST_WIN_ERROR("failed to load cursor");
         Close();
         return;
@@ -317,35 +296,27 @@ ScreenLocker::ReplaceSystemCursor::ReplaceSystemCursor(const std::wstring &iconF
         OCR_UP,
         OCR_WAIT,
     };
-    for (auto id : allCursorId)
-    {
+    for (auto id : allCursorId) {
         HCURSOR hOldCursor = CopyCursor(LoadCursor(NULL, MAKEINTRESOURCE(id)));
-        if (hOldCursor == NULL)
-        {
+        if (hOldCursor == NULL) {
             LOG_LAST_WIN_ERROR("failed to copy cursor, id=" << id);
             continue;
         }
-        if (SetSystemCursor(CopyCursor(hUserCursor), id))
-        {
+        if (SetSystemCursor(CopyCursor(hUserCursor), id)) {
             oldSystemCursor[id] = hOldCursor;
-        }
-        else
-        {
+        } else {
             LOG_LAST_WIN_ERROR("failed to replace system cursor, id=" << id);
         }
     }
-    if (!DestroyCursor(hUserCursor))
-    {
+    if (!DestroyCursor(hUserCursor)) {
         LOG_LAST_WIN_ERROR("failed to destroy user cursor");
     }
 }
 
 ScreenLocker::ReplaceSystemCursor::~ReplaceSystemCursor()
 {
-    for (const auto &it : oldSystemCursor)
-    {
-        if (!SetSystemCursor(it.second, it.first))
-        {
+    for (const auto& it : oldSystemCursor) {
+        if (!SetSystemCursor(it.second, it.first)) {
             LOG_LAST_WIN_ERROR("failed to restore system cursor, id=" << it.first);
         }
     }
