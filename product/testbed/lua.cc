@@ -1,8 +1,10 @@
+#include "lua.h"
 #include "common/utility/logging.h"
 #include "common/utility/string_helper.h"
+#include "lauxlib.h"
+#include "lualib.h"
 #include <fstream>
 #include <iostream>
-#include <lua.hpp>
 #include <sstream>
 
 using namespace cxx;
@@ -14,10 +16,12 @@ static int l_log(lua_State* L)
     for (int i = 1; i <= top; i++) {
         if (i > 1)
             ss << " ";
-        std::string str(lua_tostring(L, i));
-        ss << encodeAnsi(decodeUtf8(str));
+        if (const char* str = lua_tostring(L, i)) {
+            ss << encodeAnsi(decodeUtf8(str));
+        } else {
+            return luaL_error(L, "unprintable parameter");
+        }
     }
-
     LOG(INFO) << ss.str();
     lua_pushnil(L);
     return 1;
