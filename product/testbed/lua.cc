@@ -11,6 +11,8 @@ using namespace cxx;
 
 std::string stringfy(lua_State* L, int stackIndex)
 {
+    if (stackIndex <= 0)
+        luaL_error(L, "%s %d", "wrong stack index", stackIndex);
     std::ostringstream ss;
     int t = lua_type(L, stackIndex);
     switch (t) {
@@ -23,11 +25,29 @@ std::string stringfy(lua_State* L, int stackIndex)
         break;
     }
     case LUA_TNUMBER: {
-        ss << lua_tonumber(L, stackIndex);
+        if (lua_isinteger(L, stackIndex))
+            ss << lua_tointeger(L, stackIndex);
+        else
+            ss << lua_tonumber(L, stackIndex);
         break;
     }
     case LUA_TNIL: {
         ss << "nil";
+        break;
+    }
+    case LUA_TTABLE: {
+        ss << "{";
+        int top = lua_gettop(L);
+        lua_pushnil(L);
+        bool first = true;
+        while (lua_next(L, stackIndex)) {
+            if (!first)
+                ss << ", ";
+            ss << stringfy(L, top + 1) << ": " << stringfy(L, top + 2);
+            lua_pop(L, 1);
+            first = false;
+        }
+        ss << "}";
         break;
     }
     default: {
@@ -52,9 +72,7 @@ std::string stackDump(lua_State* L)
 
 int l_log(lua_State* L)
 {
-    if (lua_gettop(L) != 1)
-        return luaL_error(L, "wrong argument number");
-    LOG(INFO) << stringfy(L, -1);
+    LOG(INFO) << stackDump(L);
     lua_pushnil(L);
     return 1;
 }

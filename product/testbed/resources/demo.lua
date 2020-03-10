@@ -8,4 +8,4 @@ function fact(n)
 end
 
 log(fact(5))
-return fact(6), fact(7)
+return {fact(6), fact(7), {a = 10, b = "test"}}
