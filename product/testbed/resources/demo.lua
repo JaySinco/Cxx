@@ -7,5 +7,4 @@ function fact(n)
     end
 end
 
-log(fact(5))
-return {fact(6), fact(7), {a = 10, b = "test"}}
+log("from lua: fact(8) = " .. fact(8))

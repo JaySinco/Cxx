@@ -5,6 +5,8 @@ set(LIB_SRCS
     logging.h
     string_helper.h
     string_helper.cpp
+    lua_helper.h
+    lua_helper.cpp
     )
 
 add_library(${MODULE_NAME} STATIC ${LIB_SRCS})
