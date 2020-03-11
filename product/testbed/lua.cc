@@ -86,19 +86,11 @@ int main(int argc, char* argv[])
     std::string source = "D:\\Jaysinco\\Cxx\\product\\testbed\\resources\\demo.lua";
     if (argc > 1)
         source = argv[1];
-    std::ifstream file(source);
-    if (!file) {
-        LOG(ERROR) << "failed to open source file: " << source;
-        exit(0);
-    }
-    std::string code(
-        std::istreambuf_iterator<char> { file },
-        std::istreambuf_iterator<char> {});
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
     lua_pushcfunction(L, l_log);
     lua_setglobal(L, "log");
-    if (luaL_loadstring(L, code.c_str()) || lua_pcall(L, 0, LUA_MULTRET, 0)) {
+    if (luaL_loadfile(L, source.c_str()) || lua_pcall(L, 0, LUA_MULTRET, 0)) {
         std::cerr << lua_tostring(L, -1) << std::endl;
         lua_pop(L, 1);
     } else {
