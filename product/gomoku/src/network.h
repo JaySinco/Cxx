@@ -86,8 +86,7 @@ private:
     void bind_predict();
     void init_param();
     void load_param();
-    void adjust_lr();
-    float calc_init_lr();
+    float calc_lr();
     std::string make_param_file_name();
 
     long long update_cnt;

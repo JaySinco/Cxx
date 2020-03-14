@@ -239,46 +239,22 @@ FIRNet::FIRNet(long long verno)
     optimizer = OptimizerRegistry::Find("sgd");
     optimizer->SetParam("momentum", 0.9)
         ->SetParam("clip_gradient", 10)
-        ->SetParam("lr", calc_init_lr())
+        ->SetParam("lr", calc_lr())
         ->SetParam("wd", WEIGHT_DECAY);
     MX_CATCH
 }
 
-float FIRNet::calc_init_lr()
+float FIRNet::calc_lr()
 {
-    float multiplier;
-    if (update_cnt < LR_DROP_STEP1)
-        multiplier = 1.0f;
-    else if (update_cnt >= LR_DROP_STEP1 && update_cnt < LR_DROP_STEP2)
-        multiplier = 1e-1;
-    else if (update_cnt >= LR_DROP_STEP2 && update_cnt < LR_DROP_STEP3)
-        multiplier = 1e-2;
-    else
-        multiplier = 1e-3;
-    float lr = INIT_LEARNING_RATE * multiplier;
-    LOG(INFO) << "init learning_rate=" << lr;
+    float lr = BASE_LEARNING_RATE;
+    for (const auto& it : LR_SETTING_MAP) {
+        if (update_cnt >= it.first)
+            lr = it.second;
+        else
+            break;
+    }
+    LOG(INFO) << "adjusted learning_rate=" << lr;
     return lr;
-}
-
-void FIRNet::adjust_lr()
-{
-    float multiplier = 1.0f;
-    switch (update_cnt) {
-    case LR_DROP_STEP1:
-        multiplier = 1e-1;
-        break;
-    case LR_DROP_STEP2:
-        multiplier = 1e-2;
-        break;
-    case LR_DROP_STEP3:
-        multiplier = 1e-3;
-        break;
-    }
-    if (multiplier < 1.0f) {
-        float lr = INIT_LEARNING_RATE * multiplier;
-        optimizer->SetParam("lr", lr);
-        LOG(INFO) << "adjusted learning_rate=" << lr;
-    }
 }
 
 FIRNet::~FIRNet()
@@ -515,7 +491,8 @@ float FIRNet::train_step(const MiniBatch* batch)
         optimizer->Update(i, loss_train->arg_arrays[i], loss_train->grad_arrays[i]);
     }
     ++update_cnt;
-    adjust_lr();
+    if (LR_SETTING_MAP.find(update_cnt) != LR_SETTING_MAP.end())
+        optimizer->SetParam("lr", calc_lr());
     NDArray::WaitAll();
     return loss_train->outputs[0].GetData()[0];
     MX_CATCH
