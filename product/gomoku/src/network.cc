@@ -124,15 +124,11 @@ void DataSet::make_mini_batch(MiniBatch* batch) const
     }
 }
 
-std::ostream& operator<<(std::ostream& out, const DataSet& set)
-{
-    for (int i = 0; i < set.size(); ++i)
-        out << set.get(i) << std::endl;
-    return out;
-}
-
-Symbol dense_layer(const std::string& name, Symbol data,
-    int num_hidden, const std::string& act_type)
+Symbol dense_layer(
+    const std::string& name,
+    Symbol data,
+    int num_hidden,
+    const std::string& act_type)
 {
     Symbol w(name + "_w"), b(name + "_b");
     Symbol out = FullyConnected("fc_" + name, data, w, b, num_hidden);
@@ -141,9 +137,15 @@ Symbol dense_layer(const std::string& name, Symbol data,
     return out;
 }
 
-Symbol convolution_layer(const std::string& name, Symbol data,
-    int num_filter, Shape kernel, Shape stride, Shape pad,
-    bool use_act, bool use_bn = USE_BATCH_NORM)
+Symbol convolution_layer(
+    const std::string& name,
+    Symbol data,
+    int num_filter,
+    Shape kernel,
+    Shape stride,
+    Shape pad,
+    bool use_act,
+    bool use_bn = USE_BATCH_NORM)
 {
     Symbol conv_w(name + "_w");
     Symbol conv_b(name + "_b");
@@ -161,7 +163,9 @@ Symbol convolution_layer(const std::string& name, Symbol data,
     return out;
 }
 
-Symbol residual_layer(const std::string& name, Symbol data,
+Symbol residual_layer(
+    const std::string& name,
+    Symbol data,
     int num_filter)
 {
     Symbol conv1 = convolution_layer(name + "_conv1", data, num_filter,
@@ -171,8 +175,11 @@ Symbol residual_layer(const std::string& name, Symbol data,
     return Activation("relu_" + name, data + conv2, "relu");
 }
 
-Symbol residual_block(const std::string& name, Symbol data,
-    int num_block, int num_filter)
+Symbol residual_block(
+    const std::string& name,
+    Symbol data,
+    int num_block,
+    int num_filter)
 {
     Symbol out = data;
     for (int i = 0; i < num_block; ++i)
@@ -184,7 +191,8 @@ Symbol middle_layer(Symbol data)
 {
     Symbol middle_conv = convolution_layer("middle_conv", data,
         NET_NUM_FILTER, Shape(3, 3), Shape(1, 1), Shape(1, 1), true);
-    Symbol middle_residual = residual_block("middle_res", middle_conv, NET_NUM_RESIDUAL_BLOCK, NET_NUM_FILTER);
+    Symbol middle_residual = residual_block("middle_res", middle_conv,
+        NET_NUM_RESIDUAL_BLOCK, NET_NUM_FILTER);
     return middle_residual;
 }
 
@@ -193,9 +201,9 @@ std::pair<Symbol, Symbol> plc_layer(Symbol data, Symbol label)
     Symbol plc_conv = convolution_layer("plc_conv", data,
         2, Shape(1, 1), Shape(1, 1), Shape(0, 0), true);
     Symbol plc_logist_out = dense_layer("plc_logist_out", plc_conv, BOARD_SIZE, "None");
-    Symbol plc_out = SoftmaxActivation("plc_out", plc_logist_out);
+    Symbol plc_out = softmax("plc_out", plc_logist_out, Symbol {});
     Symbol plc_m_loss = -1 * elemwise_mul(label, log_softmax(plc_logist_out));
-    Symbol plc_loss = MakeLoss(mean(sum(plc_m_loss, dmlc::optional<Shape>(Shape(1)))));
+    Symbol plc_loss = mean(sum(plc_m_loss, dmlc::optional<Shape>(Shape(1))));
     return std::make_pair(plc_out, plc_loss);
 }
 
@@ -205,7 +213,7 @@ std::pair<Symbol, Symbol> val_layer(Symbol data, Symbol label)
         1, Shape(1, 1), Shape(1, 1), Shape(0, 0), true);
     Symbol val_dense = dense_layer("val_dense", val_conv, NET_NUM_FILTER, "relu");
     Symbol val_out = dense_layer("val_logist_out", val_dense, 1, "tanh");
-    Symbol val_loss = MakeLoss(mean(square(elemwise_sub(val_out, label))));
+    Symbol val_loss = mean(square(elemwise_sub(val_out, label)));
     return std::make_pair(val_out, val_loss);
 }
 
@@ -289,7 +297,7 @@ void FIRNet::build_graph()
     auto val_pair = val_layer(middle, Symbol::Variable("val_label"));
     plc = plc_pair.first;
     val = val_pair.first;
-    loss = plc_pair.second + val_pair.second;
+    loss = MakeLoss(plc_pair.second + val_pair.second);
     loss_arg_names = loss.ListArguments();
 }
 
@@ -481,8 +489,8 @@ void FIRNet::forward(const State& state,
         priors_sum += prior;
     }
     if (priors_sum < 1e-8) {
-        LOG(INFO) << "wield policy probality yield by network: sum=" << priors_sum
-                  << ", available_move_n=" << net_move_priors.size();
+        // VLOG(2) << "wield policy probality yield by network: sum=" << priors_sum
+        //         << ", available_move_n=" << net_move_priors.size();
         for (auto& item : net_move_priors)
             item.second = 1.0f / float(net_move_priors.size());
     } else {

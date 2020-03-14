@@ -65,13 +65,13 @@ int main(int argc, char* argv[])
             auto p1 = MCTSDeepPlayer(net, itermax, C_PUCT);
             if (strcmp(argv[2], "0") == 0) {
                 auto p0 = HumanPlayer("human");
-                play(p0, p1, false);
+                Player::play(p0, p1, false);
             } else if (strcmp(argv[2], "1") == 0) {
                 auto p0 = HumanPlayer("human");
-                play(p1, p0, false);
+                Player::play(p1, p0, false);
             } else if (strcmp(argv[2], "-1") == 0) {
                 auto p0 = MCTSDeepPlayer(net, itermax, C_PUCT);
-                play(p0, p1, false);
+                Player::play(p0, p1, false);
             }
             return 0;
         }
@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
             auto net2 = std::make_shared<FIRNet>(verno2);
             auto p1 = MCTSDeepPlayer(net1, itermax, C_PUCT);
             auto p2 = MCTSDeepPlayer(net2, itermax, C_PUCT);
-            benchmark(p1, p2, 10, false);
+            Player::benchmark(p1, p2, 10, false);
             return 0;
         }
         EXIT_WITH_USAGE(benchmark_usage);

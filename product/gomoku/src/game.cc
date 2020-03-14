@@ -1,27 +1,8 @@
 #include "game.h"
-#include <iomanip>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
-
-Color operator~(const Color c)
-{
-    Color opposite;
-    switch (c) {
-    case Color::Black:
-        opposite = Color::White;
-        break;
-    case Color::White:
-        opposite = Color::Black;
-        break;
-    case Color::Empty:
-        opposite = Color::Empty;
-        break;
-    }
-    assert(opposite != Color::Empty);
-    return opposite;
-}
 
 std::ostream& operator<<(std::ostream& out, Color c)
 {
@@ -37,12 +18,6 @@ std::ostream& operator<<(std::ostream& out, Color c)
         break;
     }
     return out;
-}
-
-std::ostream& operator<<(std::ostream& out, Move mv)
-{
-    return out << "(" << std::setw(2) << mv.r() << ", "
-               << std::setw(2) << mv.c() << ")";
 }
 
 void Board::push_valid(std::vector<Move>& set) const
@@ -152,15 +127,7 @@ Color State::next_rand_till_end()
     return winner;
 }
 
-std::ostream& operator<<(std::ostream& out, const State& state)
-{
-    if (state.last.z() == NO_MOVE_YET)
-        return out << state.board << "last move: None";
-    else
-        return out << state.board << "last move: " << ~state.current() << state.last;
-}
-
-Player& play(Player& p1, Player& p2, bool silent)
+Player& Player::play(Player& p1, Player& p2, bool silent)
 {
     const std::map<Color, Player*> player_color {
         { Color::Black, &p1 },
@@ -188,7 +155,7 @@ Player& play(Player& p1, Player& p2, bool silent)
     return *winner;
 }
 
-float benchmark(Player& p1, Player& p2, int round, bool silent)
+float Player::benchmark(Player& p1, Player& p2, int round, bool silent)
 {
     assert(round > 0);
     int p1win = 0, p2win = 0, even = 0;

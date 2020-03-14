@@ -86,7 +86,7 @@ void train(std::shared_ptr<FIRNet> net)
             }
         }
         if (trigger_timer(last_benchmark, MINUTE_PER_BENCHMARK)) {
-            float lose_prob = 1 - benchmark(net_player, test_player, 10);
+            float lose_prob = 1 - Player::benchmark(net_player, test_player, 10);
             LOG(INFO) << "benchmark 10 games against " << test_player.name() << ", lose_prob=" << lose_prob;
             if (lose_prob < 1e-3 && test_itermax < 15 * TEST_PURE_ITERMAX) {
                 test_itermax += TEST_PURE_ITERMAX;
