@@ -4,13 +4,6 @@
 #include <map>
 
 class MCTSNode {
-    friend std::ostream& operator<<(std::ostream& out, const MCTSNode& node);
-    MCTSNode* parent;
-    std::map<Move, MCTSNode*> children;
-    int visits;
-    float quality;
-    float prior;
-
 public:
     MCTSNode(MCTSNode* node_p, float prior_p)
         : parent(node_p)
@@ -20,6 +13,8 @@ public:
     {
     }
     ~MCTSNode();
+    bool is_leaf() const { return children.size() == 0; }
+    bool is_root() const { return parent == nullptr; }
     void expand(const std::vector<std::pair<Move, float>>& set);
     MCTSNode* cut(Move occurred);
     std::pair<Move, MCTSNode*> select(float c_puct) const;
@@ -29,22 +24,17 @@ public:
     void update_recursive(float leafValue);
     void add_noise_to_child_prior(float noise_rate);
     float value(float c_puct) const;
-    bool is_leaf() const { return children.size() == 0; }
-    bool is_root() const { return parent == nullptr; }
+    friend std::ostream& operator<<(std::ostream& out, const MCTSNode& node);
+
+private:
+    MCTSNode* parent;
+    std::map<Move, MCTSNode*> children;
+    int visits;
+    float quality;
+    float prior;
 };
-std::ostream& operator<<(std::ostream& out, const MCTSNode& node);
 
 class MCTSPurePlayer : public Player {
-    std::string id;
-    int itermax;
-    float c_puct;
-    MCTSNode* root;
-    void swap_root(MCTSNode* new_root)
-    {
-        delete root;
-        root = new_root;
-    }
-
 public:
     MCTSPurePlayer(int itermax, float c_puct);
     ~MCTSPurePlayer() { delete root; }
@@ -53,9 +43,32 @@ public:
     void make_id();
     void reset() override;
     Move play(const State& state) override;
+
+private:
+    void swap_root(MCTSNode* new_root)
+    {
+        delete root;
+        root = new_root;
+    }
+
+    std::string id;
+    int itermax;
+    float c_puct;
+    MCTSNode* root;
 };
 
 class MCTSDeepPlayer : public Player {
+public:
+    MCTSDeepPlayer(std::shared_ptr<FIRNet> nn, int itermax, float c_puct);
+    ~MCTSDeepPlayer() { delete root; }
+    const std::string& name() const override { return id; }
+    void make_id();
+    void reset() override;
+    Move play(const State& state) override;
+    static void think(int itermax, float c_puct, const State& state,
+        std::shared_ptr<FIRNet> net, MCTSNode* root, bool add_noise_to_root = false);
+
+private:
     std::string id;
     int itermax;
     float c_puct;
@@ -66,14 +79,4 @@ class MCTSDeepPlayer : public Player {
         delete root;
         root = new_root;
     }
-
-public:
-    MCTSDeepPlayer(std::shared_ptr<FIRNet> nn, int itermax, float c_puct);
-    ~MCTSDeepPlayer() { delete root; }
-    const std::string& name() const override { return id; }
-    void make_id();
-    void reset() override;
-    Move play(const State& state) override;
-    static void think(int itermax, float c_puct, const State& state,
-        std::shared_ptr<FIRNet> net, MCTSNode* root, bool add_noise_to_root = false);
 };
