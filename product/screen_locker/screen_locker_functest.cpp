@@ -23,8 +23,8 @@ int main(int argc, char* argv[])
     ScreenLocker::Popup(
         "",
         u8"请输入密码: ",
-        fromRoot("product\\windows\\resources\\background.bmp"),
-        fromRoot("product\\windows\\resources\\point.cur"),
+        abspath("product\\screen_locker\\resources\\background.bmp"),
+        abspath("product\\screen_locker\\resources\\point.cur"),
         false,
         false,
         500);

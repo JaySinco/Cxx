@@ -6,7 +6,7 @@ using namespace cxx;
 
 IUIAutomation* g_pAutomation;
 
-UIAElemPtr make_uia_elem(IUIAutomationElement* pElement)
+UIAElemPtr makeSmartElemPtr(IUIAutomationElement* pElement)
 {
     return std::shared_ptr<IUIAutomationElement>(
         pElement,
@@ -73,7 +73,7 @@ std::vector<UIAElemPtr> findElementByProp(
     if (root == nullptr) {
         IUIAutomationElement* pRoot = NULL;
         CLEAN_UP_IF_FAILED(g_pAutomation->GetRootElement(&pRoot));
-        root = make_uia_elem(pRoot);
+        root = makeSmartElemPtr(pRoot);
     }
     CLEAN_UP_IF_FAILED(g_pAutomation->CreateCacheRequest(&pCacheRequest));
     for (auto prop : {
@@ -93,12 +93,12 @@ std::vector<UIAElemPtr> findElementByProp(
             IUIAutomationElement* pElement;
             if (FAILED(pFound->GetElement(i, &pElement)))
                 continue;
-            res.push_back(make_uia_elem(pElement));
+            res.push_back(makeSmartElemPtr(pElement));
         }
     } else {
         IUIAutomationElement* pElement;
         CLEAN_UP_IF_FAILED(root->FindFirstBuildCache(scope, pCondition, pCacheRequest, &pElement));
-        res.push_back(make_uia_elem(pElement));
+        res.push_back(makeSmartElemPtr(pElement));
     }
 
 cleanup:
@@ -108,7 +108,7 @@ cleanup:
     return res;
 }
 
-ElementMeta GetElementMeta(UIAElemPtr pElement)
+ElementMeta getElementMeta(UIAElemPtr pElement)
 {
     int pid;
     BSTR className, name, id, itemType;
@@ -146,7 +146,7 @@ ElementMeta GetElementMeta(UIAElemPtr pElement)
 
 std::ostream& operator<<(std::ostream& out, const UIAElemPtr& pElement)
 {
-    ElementMeta meta = GetElementMeta(pElement);
+    ElementMeta meta = getElementMeta(pElement);
     out << "NAME\t\t\"" << encodeAnsi(meta.name) << "\"" << std::endl
         << "POS\t\t(" << meta.rect.left << ", " << meta.rect.top << ")" << std::endl
         << "SIZE\t\t(" << (meta.rect.right - meta.rect.left)

@@ -39,9 +39,9 @@ std::string tostr(T&& Arg)
 }
 #endif
 
-inline std::string fromRoot(const std::string& relpath)
+inline std::string abspath(const std::string& relpathFromRoot)
 {
-    return "D:\\Jaysinco\\Cxx\\" + relpath;
+    return "D:\\Jaysinco\\Cxx\\" + relpathFromRoot;
 }
 
 } // namespace cxx

@@ -31,8 +31,8 @@ struct ElementMeta {
 
 typedef std::shared_ptr<IUIAutomationElement> UIAElemPtr;
 typedef std::map<PROPERTYID, std::wstring> PropCondition;
-UIAElemPtr make_uia_elem(IUIAutomationElement* pElement);
-ElementMeta GetElementMeta(UIAElemPtr pElement);
+UIAElemPtr makeSmartElemPtr(IUIAutomationElement* pElement);
+ElementMeta getElementMeta(UIAElemPtr pElement);
 
 std::vector<UIAElemPtr> findElementByProp(
     PropCondition cond,

@@ -1,5 +1,5 @@
 #include "common/utility/logging.h"
-#include "service.h"
+#include "remote_shell_service.h"
 #include <thrift/TToString.h>
 #include <thrift/concurrency/PlatformThreadFactory.h>
 #include <thrift/concurrency/ThreadManager.h>

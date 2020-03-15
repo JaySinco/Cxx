@@ -1,5 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
-#include "service.h"
+#include "remote_shell_service.h"
 #include "Windows.h"
 #include "common/utility/logging.h"
 #include <Lmcons.h>

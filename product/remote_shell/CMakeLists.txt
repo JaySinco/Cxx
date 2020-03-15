@@ -4,7 +4,7 @@ add_custom_target(__target_${MODULE_NAME})
 set(LIB_SRCS 
     resources/gen-cpp/service_types.cpp
     resources/gen-cpp/RemoteShellService.cpp
-    service.cc
+    remote_shell_service.cc
     )
 
 add_library(${MODULE_NAME} STATIC ${LIB_SRCS})
