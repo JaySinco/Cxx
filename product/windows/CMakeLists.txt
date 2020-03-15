@@ -10,11 +10,11 @@ target_link_libraries(screen_locker_functest
     common_utility
     )
 
-add_executable(ui_assistant_functest
-    ui_assistant.h
-    ui_assistant.cpp
-    ui_assistant_functest.cpp
+add_executable(uiautomation_helper_functest
+    uiautomation_helper.h
+    uiautomation_helper.cpp
+    uiautomation_helper_functest.cpp
     )
-target_link_libraries(ui_assistant_functest
+target_link_libraries(uiautomation_helper_functest
     common_utility
     )
