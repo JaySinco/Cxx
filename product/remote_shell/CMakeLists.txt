@@ -2,8 +2,8 @@ set(MODULE_NAME product_remote_shell)
 add_custom_target(__target_${MODULE_NAME})
 
 set(LIB_SRCS 
-    gen-cpp/service_types.cpp
-    gen-cpp/RemoteShellService.cpp
+    resources/gen-cpp/service_types.cpp
+    resources/gen-cpp/RemoteShellService.cpp
     service.cc
     )
 

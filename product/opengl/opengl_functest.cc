@@ -4,8 +4,7 @@
 #include <chrono>
 #include <thread>
 
-#define RESOURCE(relpath) (std::string("D:\\Jaysinco\\Cxx\\product\\opengl\\resources\\") + relpath)
-
+using namespace cxx;
 using namespace cxx::gl;
 
 Storage* gStorage;
@@ -115,15 +114,15 @@ void setup(Storage& repo, const std::string& target)
     SceneConfig options[] = {
         {
             "porcelain",
-            RESOURCE("models\\porcelain.obj"),
-            RESOURCE("textures\\porcelain.jpg"),
+            fromRoot("product\\opengl\\resources\\models\\porcelain.obj"),
+            fromRoot("product\\opengl\\resources\\textures\\porcelain.jpg"),
             Light::POINT,
             glm::mat4(1.0f),
         },
         {
             "woman",
-            RESOURCE("models\\woman.obj"),
-            RESOURCE("textures\\woman.png"),
+            fromRoot("product\\opengl\\resources\\models\\woman.obj"),
+            fromRoot("product\\opengl\\resources\\textures\\woman.png"),
             Light::GLOBAL,
             Object::rotateY(-45.0f) * Object::rotateZ(90.0f),
         },
@@ -133,7 +132,9 @@ void setup(Storage& repo, const std::string& target)
     });
     if (opt == std::end(options))
         opt = std::begin(options);
-    repo.put<Shader>("SH_universe", RESOURCE("shaders\\universe.vs"), RESOURCE("shaders\\universe.fs"));
+    repo.put<Shader>("SH_universe",
+        fromRoot("product\\opengl\\resources\\shaders\\universe.vs"),
+        fromRoot("product\\opengl\\resources\\shaders\\universe.fs"));
     repo.put<Model>("MO_model", opt->model_path);
     repo.put<Texture>("TE_texture", opt->texture_path);
     repo.put<Material>("MA_material", "TE_texture", 0.6f, 25.0f);

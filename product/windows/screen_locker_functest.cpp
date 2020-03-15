@@ -3,6 +3,8 @@
 #include <chrono>
 #include <thread>
 
+using namespace cxx;
+
 int main(int argc, char* argv[])
 {
     google::InitGoogleLogging(argv[0]);
@@ -21,8 +23,8 @@ int main(int argc, char* argv[])
     ScreenLocker::Popup(
         "",
         u8"请输入密码: ",
-        u8"D:\\Jaysinco\\Cxx\\product\\windows\\resources\\background.bmp",
-        u8"D:\\Jaysinco\\Cxx\\product\\windows\\resources\\point.cur",
+        fromRoot("product\\windows\\resources\\background.bmp"),
+        fromRoot("product\\windows\\resources\\point.cur"),
         false,
         false,
         500);

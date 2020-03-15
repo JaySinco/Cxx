@@ -1,8 +1,12 @@
 #pragma once
+#include <string>
 #define GLOG_NO_ABBREVIATED_SEVERITIES
 #define GOOGLE_GLOG_DLL_DECL
 #include <gflags/gflags.h>
 #include <glog/logging.h>
+#if __cplusplus >= 201703L
+#include <pprint/pprint.hpp>
+#endif
 #define TRY_BEGIN \
     try {
 #define CATCH_ALL                                            \
@@ -21,9 +25,10 @@
 #ifdef _WIN32
 #define LOG_LAST_WIN_ERROR(msg) LOG(ERROR) << msg << ", errno=" << GetLastError()
 #endif
-#if __cplusplus >= 201703L
-#include <pprint/pprint.hpp>
+
 namespace cxx {
+
+#if __cplusplus >= 201703L
 template <typename T>
 std::string tostr(T&& Arg)
 {
@@ -32,5 +37,11 @@ std::string tostr(T&& Arg)
     printer.print(std::forward<T>(Arg));
     return ss.str();
 }
-} // namespace cxx
 #endif
+
+inline std::string fromRoot(const std::string& relpath)
+{
+    return "D:\\Jaysinco\\Cxx\\" + relpath;
+}
+
+} // namespace cxx

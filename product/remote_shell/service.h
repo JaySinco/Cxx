@@ -1,5 +1,5 @@
 #pragma once
-#include "gen-cpp/RemoteShellService.h"
+#include "resources/gen-cpp/RemoteShellService.h"
 
 namespace cxx {
 

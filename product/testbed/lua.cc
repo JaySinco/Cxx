@@ -12,7 +12,7 @@ int log(lua_State* L)
 
 int test(lua_State* L)
 {
-    std::string source = "D:\\Jaysinco\\Cxx\\product\\testbed\\resources\\demo.lua";
+    std::string source = fromRoot("product\\testbed\\resources\\demo.lua");
     if (luaL_loadfile(L, source.c_str()) || lua_pcall(L, 0, LUA_MULTRET, 0)) {
         luaL_error(L, lua_tostring(L, -1));
     } else {

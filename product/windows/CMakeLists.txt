@@ -9,3 +9,12 @@ add_executable(screen_locker_functest
 target_link_libraries(screen_locker_functest
     common_utility
     )
+
+add_executable(ui_assistant_functest
+    ui_assistant.h
+    ui_assistant.cpp
+    ui_assistant_functest.cpp
+    )
+target_link_libraries(ui_assistant_functest
+    common_utility
+    )
