@@ -1,4 +1,4 @@
-#include "common/utility/logging.h"
+#include "common/utility/base.h"
 #include "common/utility/string_helper.h"
 #include <algorithm>
 #include <execution>

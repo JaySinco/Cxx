@@ -114,17 +114,10 @@ void setup(Storage& repo, const std::string& target)
     SceneConfig options[] = {
         {
             "porcelain",
-            abspath("product\\opengl\\resources\\models\\porcelain.obj"),
-            abspath("product\\opengl\\resources\\textures\\porcelain.jpg"),
+            getResAbsPath("opengl", "porcelain.obj"),
+            getResAbsPath("opengl", "porcelain.jpg"),
             Light::POINT,
             glm::mat4(1.0f),
-        },
-        {
-            "woman",
-            abspath("product\\opengl\\resources\\models\\woman.obj"),
-            abspath("product\\opengl\\resources\\textures\\woman.png"),
-            Light::GLOBAL,
-            Object::rotateY(-45.0f) * Object::rotateZ(90.0f),
         },
     };
     auto opt = std::find_if(std::begin(options), std::end(options), [&](const SceneConfig& c) {
@@ -133,8 +126,8 @@ void setup(Storage& repo, const std::string& target)
     if (opt == std::end(options))
         opt = std::begin(options);
     repo.put<Shader>("SH_universe",
-        abspath("product\\opengl\\resources\\shaders\\universe.vs"),
-        abspath("product\\opengl\\resources\\shaders\\universe.fs"));
+        getResAbsPath("opengl", "universe.vs"),
+        getResAbsPath("opengl", "universe.fs"));
     repo.put<Model>("MO_model", opt->model_path);
     repo.put<Texture>("TE_texture", opt->texture_path);
     repo.put<Material>("MA_material", "TE_texture", 0.6f, 25.0f);

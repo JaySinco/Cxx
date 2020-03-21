@@ -15,13 +15,14 @@ endif()
 message(STATUS "ABI -> " ${TARGET_ABI})
 message(STATUS "OS -> " ${TARGET_OS})
 
-# set(WINDOWS_DLL_LIST
-#     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/openssl/bin/libssl-1_1-x64.dll
-#     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/openssl/bin/libcrypto-1_1-x64.dll
-# )
-# message(STATUS "Windows dll -> " ${WINDOWS_DLL_LIST})
+set(WINDOWS_DLL_LIST
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/openssl/bin/libssl-1_1-x64.dll
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/openssl/bin/libcrypto-1_1-x64.dll
+)
+message(STATUS "Windows dll -> " ${WINDOWS_DLL_LIST})
 
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR})
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR})
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/gflags/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/glog/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/gtest/include/)
@@ -34,15 +35,15 @@ list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/zlib/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/leveldb/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/json/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/glm/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/pprint/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/stb/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/glad/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/imgui/include/)
-list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/tinyxml/include/)
-list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/json/include/)
-list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/glm/include/)
-list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/pprint/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/lua/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/tinyobjloader/include/)
-list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/stb/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/tinyxml/include/)
 message(STATUS "Include dir -> " ${INCLUDE_DIR})
 include_directories(${INCLUDE_DIR})
 
@@ -120,14 +121,14 @@ macro (add_executable)
         message(FATAL_ERROR "missing target: __target_${MODULE_NAME}, current_dir: ${CMAKE_CURRENT_SOURCE_DIR}")
     endif()
 
-    # if(MSVC)
-    #     message(STATUS "Copy dll dependencies to bin directory.")
-    #     # Copy DLL files to output directory
-    #     add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-    #         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    #         ${WINDOWS_DLL_LIST}
-    #         $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>)
-    # endif()
+    if(MSVC)
+        message(STATUS "Copy dll dependencies to bin directory.")
+        # Copy DLL files to output directory
+        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${WINDOWS_DLL_LIST}
+            $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>)
+    endif()
 
 endmacro()
 
@@ -155,8 +156,8 @@ endmacro()
 
 configure_msvc_runtime()
 
-add_subdirectory(common)
 add_subdirectory(external)
+add_subdirectory(common)
 add_subdirectory(product)
 
 add_dependencies(__target_root

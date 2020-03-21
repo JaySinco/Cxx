@@ -11,10 +11,10 @@ add_library(gtest STATIC IMPORTED GLOBAL)
 set_target_properties(gtest PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/gtest/lib/gtest.lib)
 
 add_library(libssl STATIC IMPORTED GLOBAL)
-set_target_properties(libssl PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/openssl/lib/libssl_static.lib)
+set_target_properties(libssl PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/openssl/lib/libssl.lib)
 
 add_library(libcrypto STATIC IMPORTED GLOBAL)
-set_target_properties(libcrypto PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/openssl/lib/libcrypto_static.lib)
+set_target_properties(libcrypto PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/openssl/lib/libcrypto.lib)
 
 add_library(libmxnet STATIC IMPORTED GLOBAL)
 set_target_properties(libmxnet PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/lib/libmxnet.lib)
@@ -29,13 +29,7 @@ add_library(thriftnb STATIC IMPORTED GLOBAL)
 set_target_properties(thriftnb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/thrift/lib/thriftnbmd.lib)
 
 add_library(libcurl STATIC IMPORTED GLOBAL)
-set_target_properties(libcurl PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/curl/lib/libcurl_a.lib)
-
-add_library(zlib STATIC IMPORTED GLOBAL)
-set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/zlib/lib/zlibstatic.lib)
-
-add_library(leveldb STATIC IMPORTED GLOBAL)
-set_target_properties(leveldb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/leveldb/lib/leveldb.lib)
+set_target_properties(libcurl PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/curl/lib/libcurl.lib)
 
 add_library(boost-atomic STATIC IMPORTED GLOBAL)
 set_target_properties(boost-atomic PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/boost/lib/libboost_atomic-vc141-mt-x64-1_71.lib)
@@ -52,10 +46,14 @@ set_target_properties(mongocxx PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/
 add_library(bsoncxx STATIC IMPORTED GLOBAL)
 set_target_properties(bsoncxx PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/lib/bsoncxx-static.lib)
 
+add_library(mongo-all STATIC ${CMAKE_SOURCE_DIR}/.trash.c)
+target_link_libraries(mongo-all bson mongocxx bsoncxx bsoncxx)
+
 add_subdirectory(glad)
 add_subdirectory(imgui)
 add_subdirectory(tinyxml)
 add_subdirectory(lua)
+add_subdirectory(tinyobjloader)
 
 add_dependencies(__target_${MODULE_NAME}
     ${SUBDIRECTORY_TARGETS}

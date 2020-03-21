@@ -2,11 +2,9 @@ set(MODULE_NAME common_utility)
 add_custom_target(__target_${MODULE_NAME})
 
 set(LIB_SRCS 
-    logging.h
+    base.h
     string_helper.h
     string_helper.cpp
-    lua_helper.h
-    lua_helper.cpp
     )
 
 add_library(${MODULE_NAME} STATIC ${LIB_SRCS})

@@ -42,10 +42,7 @@ target_link_libraries(http_t
 add_executable(mongo_t mongo.cc)
 target_link_libraries(mongo_t
     common_utility
-    mongoc
-    bson
-    mongocxx
-    bsoncxx
+    mongo-all
     ws2_32
     secur32
     crypt32

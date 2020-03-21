@@ -21,7 +21,7 @@ target_link_libraries(gomoku libmxnet)
 set(COPY_FILE_LIST
     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/libmxnet.dll
     ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/mkldnn.dll
-    ${CMAKE_SOURCE_DIR}/product/gomoku/resources/FIR-8x64i3@9336.param
+    ${CMAKE_SOURCE_DIR}/external/resources/gomoku/FIR-8x64i3@9336.param
     )
 
 add_custom_command(TARGET gomoku
