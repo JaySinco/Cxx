@@ -23,10 +23,11 @@ set(LIB_SRCS
 add_library(${MODULE_NAME} ${LIB_SRCS})
 target_link_libraries(${MODULE_NAME}
     common_utility
+    tinyobjloader
     opengl32
     glfw
     glad
     )
 
-add_executable(opengl_functest opengl_functest.cc)
-target_link_libraries(opengl_functest ${MODULE_NAME})
+add_executable(objviewer objviewer.cc)
+target_link_libraries(objviewer ${MODULE_NAME})

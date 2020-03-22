@@ -4,8 +4,8 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-#ifndef service_TYPES_H
-#define service_TYPES_H
+#ifndef remote_shell_TYPES_H
+#define remote_shell_TYPES_H
 
 #include <iosfwd>
 
@@ -18,7 +18,7 @@
 #include <thrift/stdcxx.h>
 
 
-namespace cxx { namespace service {
+
 
 class ComputerInfo;
 
@@ -326,6 +326,6 @@ void swap(ShellRtn &a, ShellRtn &b);
 
 std::ostream& operator<<(std::ostream& out, const ShellRtn& obj);
 
-}} // namespace
+
 
 #endif

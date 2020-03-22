@@ -28,6 +28,9 @@ set_target_properties(thrift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/ex
 add_library(thriftnb STATIC IMPORTED GLOBAL)
 set_target_properties(thriftnb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/thrift/lib/thriftnbmd.lib)
 
+add_library(zlib STATIC IMPORTED GLOBAL)
+set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/zlib/lib/zlibstatic.lib)
+
 add_library(libcurl STATIC IMPORTED GLOBAL)
 set_target_properties(libcurl PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/curl/lib/libcurl.lib)
 
@@ -50,7 +53,7 @@ add_library(bsoncxx STATIC IMPORTED GLOBAL)
 set_target_properties(bsoncxx PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/lib/bsoncxx-static.lib)
 
 add_library(mongo-all STATIC ${CMAKE_SOURCE_DIR}/.trash.c)
-target_link_libraries(mongo-all bson mongocxx bsoncxx bsoncxx)
+target_link_libraries(mongo-all bson mongoc bsoncxx mongocxx)
 
 add_subdirectory(glad)
 add_subdirectory(imgui)

@@ -1,5 +1,3 @@
-namespace cpp cxx.service
-
 struct ComputerInfo {
     1: string osName
     2: string userName

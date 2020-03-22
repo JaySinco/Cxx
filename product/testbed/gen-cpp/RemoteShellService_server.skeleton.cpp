@@ -12,8 +12,6 @@ using namespace ::apache::thrift::protocol;
 using namespace ::apache::thrift::transport;
 using namespace ::apache::thrift::server;
 
-using namespace  ::cxx::service;
-
 class RemoteShellServiceHandler : virtual public RemoteShellServiceIf {
  public:
   RemoteShellServiceHandler() {

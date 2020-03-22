@@ -34,9 +34,19 @@ std::string encodeAnsi(const std::wstring& str)
     return encode(str, CP_ACP);
 }
 
+std::string encodeUtf8(const std::wstring& str)
+{
+    return encode(str, CP_UTF8);
+}
+
 std::wstring decodeUtf8(const std::string& str)
 {
     return decode(str, CP_UTF8);
+}
+
+std::wstring decodeAnsi(const std::string& str)
+{
+    return decode(str, CP_ACP);
 }
 
 } // namespace cxx

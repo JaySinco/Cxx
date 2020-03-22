@@ -1,10 +1,14 @@
-#include "lua_helper.h"
-#include "string_helper.h"
+#include "lua.h"
+#include "common/utility/base.h"
+#include "common/utility/string_helper.h"
+#include "lauxlib.h"
+#include "lualib.h"
 #include <sstream>
+#include <string>
 
-namespace cxx {
+using namespace cxx;
 
-std::string luaStringfy(lua_State* L, int stackIndex, bool quoted)
+std::string luaStringfy(lua_State* L, int stackIndex, bool quoted = true)
 {
     if (stackIndex <= 0)
         luaL_error(L, "%s %d", "wrong stack index", stackIndex);
@@ -54,7 +58,7 @@ std::string luaStringfy(lua_State* L, int stackIndex, bool quoted)
     return ss.str();
 }
 
-std::string luaStackDump(lua_State* L, bool quoted)
+std::string luaStackDump(lua_State* L, bool quoted = true)
 {
     std::ostringstream ss;
     int top = lua_gettop(L);
@@ -122,4 +126,40 @@ endwhile:
     va_end(vl);
 }
 
-} // namespace cxx
+int log(lua_State* L)
+{
+    LOG(INFO) << luaStackDump(L, false);
+    lua_pushnil(L);
+    return 1;
+}
+
+int test(lua_State* L)
+{
+    std::string source = getResAbsPath("testbed", "demo.lua");
+    if (luaL_loadfile(L, source.c_str()) || lua_pcall(L, 0, LUA_MULTRET, 0)) {
+        luaL_error(L, lua_tostring(L, -1));
+    } else {
+        if (lua_gettop(L) > 0)
+            LOG(INFO) << "[RETURN] " << luaStackDump(L) << std::endl;
+        int factRes;
+        callSimpleLuaFunc(L, "fact", "i>i", 8, &factRes);
+        LOG(INFO) << "from cpp: fact(8) = " << factRes;
+    }
+    return 0;
+}
+
+int main(int argc, char* argv[])
+{
+    google::InitGoogleLogging(argv[0]);
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    FLAGS_logtostderr = 1;
+    FLAGS_minloglevel = 0;
+    lua_State* L = luaL_newstate();
+    luaL_openlibs(L);
+    lua_pushcfunction(L, log);
+    lua_setglobal(L, "log");
+    lua_pushcfunction(L, test);
+    if (lua_pcall(L, 0, 0, 0))
+        LOG(ERROR) << lua_tostring(L, -1) << std::endl;
+    lua_close(L);
+}

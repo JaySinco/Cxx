@@ -6,7 +6,7 @@
  */
 #include "RemoteShellService.h"
 
-namespace cxx { namespace service {
+
 
 
 RemoteShellService_GetComputerInfo_args::~RemoteShellService_GetComputerInfo_args() throw() {
@@ -2240,5 +2240,5 @@ void RemoteShellServiceConcurrentClient::recv_Execute(ShellRtn& _return, const i
   } // end while(true)
 }
 
-}} // namespace
+
 

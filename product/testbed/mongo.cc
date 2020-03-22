@@ -1,10 +1,13 @@
 #include "common/utility/base.h"
+#include "common/utility/string_helper.h"
 #define BSONCXX_STATIC
 #define MONGOCXX_STATIC
 #include <bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/json.hpp>
 #include <mongocxx/client.hpp>
 #include <mongocxx/instance.hpp>
+
+using namespace cxx;
 
 int main(int argc, char* argv[])
 {
@@ -25,7 +28,7 @@ int main(int argc, char* argv[])
     collection.insert_one(make_document(kvp("hello", "world")));
     auto cursor = collection.find({});
     for (auto& doc : cursor) {
-        LOG(INFO) << bsoncxx::to_json(doc) << std::endl;
+        LOG(INFO) << encodeAnsi(decodeUtf8(bsoncxx::to_json(doc))) << std::endl;
     }
     CATCH_ALL
 }

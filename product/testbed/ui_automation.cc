@@ -1,10 +1,72 @@
-#include "uiautomation_helper.h"
+#include "common/utility/base.h"
 #include "common/utility/string_helper.h"
-#include <psapi.h>
+#include <iostream>
+#include <map>
+#include <string>
+#include <uiautomation.h>
+#include <vector>
+
+#include <Psapi.h>
+
+#define CLEAN_UP_IF_FAILED(x)              \
+    if (FAILED(x)) {                       \
+        LOG(ERROR) << "failed op: " << #x; \
+        goto cleanup;                      \
+    }
+
+#define RELEASE_IF_NOT_NULL(x) \
+    if (x != NULL)             \
+        x->Release();
 
 using namespace cxx;
 
 IUIAutomation* g_pAutomation;
+
+struct UIAInitializer {
+    UIAInitializer()
+    {
+        CoInitializeEx(
+            NULL,
+            COINIT_MULTITHREADED);
+
+        CoCreateInstance(
+            CLSID_CUIAutomation,
+            NULL,
+            CLSCTX_INPROC_SERVER,
+            IID_IUIAutomation, reinterpret_cast<void**>(&g_pAutomation));
+    }
+
+    ~UIAInitializer()
+    {
+        CoUninitialize();
+    }
+};
+
+std::wstring b2w(BSTR bstr)
+{
+    if (bstr == nullptr)
+        return {};
+    return std::wstring(bstr, SysStringLen(bstr));
+}
+
+BSTR w2b(const std::wstring& wstr)
+{
+    if (wstr.empty())
+        return nullptr;
+    return SysAllocStringLen(wstr.data(), (int)wstr.size());
+}
+
+struct ElementMeta {
+    std::wstring name;
+    RECT rect;
+    std::wstring className;
+    std::wstring moduleName;
+    std::wstring automationId;
+    std::wstring itemType;
+};
+
+typedef std::shared_ptr<IUIAutomationElement> UIAElemPtr;
+typedef std::map<PROPERTYID, std::wstring> PropCondition;
 
 UIAElemPtr makeSmartElemPtr(IUIAutomationElement* pElement)
 {
@@ -15,29 +77,47 @@ UIAElemPtr makeSmartElemPtr(IUIAutomationElement* pElement)
         });
 }
 
-UIAInitializer::UIAInitializer()
+ElementMeta getElementMeta(UIAElemPtr pElement)
 {
-    CoInitializeEx(
-        NULL,
-        COINIT_MULTITHREADED);
-
-    CoCreateInstance(
-        CLSID_CUIAutomation,
-        NULL,
-        CLSCTX_INPROC_SERVER,
-        IID_IUIAutomation, reinterpret_cast<void**>(&g_pAutomation));
-}
-
-UIAInitializer::~UIAInitializer()
-{
-    CoUninitialize();
+    int pid;
+    BSTR className, name, id, itemType;
+    ElementMeta meta;
+    if (SUCCEEDED(pElement->get_CachedName(&name))) {
+        meta.name = b2w(name);
+        SysFreeString(name);
+    }
+    pElement->get_CachedBoundingRectangle(&meta.rect);
+    if (SUCCEEDED(pElement->get_CachedClassName(&className))) {
+        meta.className = b2w(className);
+        SysFreeString(className);
+    }
+    if (SUCCEEDED(pElement->get_CachedProcessId(&pid))) {
+        HANDLE hProcess = OpenProcess(
+            PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+            FALSE,
+            pid);
+        if (hProcess) {
+            wchar_t buf[1000];
+            GetModuleBaseNameW(hProcess, NULL, buf, 1000);
+            meta.moduleName = std::wstring(buf);
+        }
+    }
+    if (SUCCEEDED(pElement->get_CachedAutomationId(&id))) {
+        meta.automationId = b2w(id);
+        SysFreeString(id);
+    }
+    if (SUCCEEDED(pElement->get_CachedItemType(&itemType))) {
+        meta.itemType = b2w(itemType);
+        SysFreeString(itemType);
+    }
+    return meta;
 }
 
 std::vector<UIAElemPtr> findElementByProp(
     PropCondition cond,
-    UIAElemPtr root,
-    TreeScope scope,
-    bool findAll)
+    UIAElemPtr root = nullptr,
+    TreeScope scope = TreeScope_Children,
+    bool findAll = true)
 {
     IUIAutomationCondition* pCondition = NULL;
     IUIAutomationElementArray* pFound = NULL;
@@ -108,42 +188,6 @@ cleanup:
     return res;
 }
 
-ElementMeta getElementMeta(UIAElemPtr pElement)
-{
-    int pid;
-    BSTR className, name, id, itemType;
-    ElementMeta meta;
-    if (SUCCEEDED(pElement->get_CachedName(&name))) {
-        meta.name = b2w(name);
-        SysFreeString(name);
-    }
-    pElement->get_CachedBoundingRectangle(&meta.rect);
-    if (SUCCEEDED(pElement->get_CachedClassName(&className))) {
-        meta.className = b2w(className);
-        SysFreeString(className);
-    }
-    if (SUCCEEDED(pElement->get_CachedProcessId(&pid))) {
-        HANDLE hProcess = OpenProcess(
-            PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-            FALSE,
-            pid);
-        if (hProcess) {
-            wchar_t buf[1000];
-            GetModuleBaseNameW(hProcess, NULL, buf, 1000);
-            meta.moduleName = std::wstring(buf);
-        }
-    }
-    if (SUCCEEDED(pElement->get_CachedAutomationId(&id))) {
-        meta.automationId = b2w(id);
-        SysFreeString(id);
-    }
-    if (SUCCEEDED(pElement->get_CachedItemType(&itemType))) {
-        meta.itemType = b2w(itemType);
-        SysFreeString(itemType);
-    }
-    return meta;
-}
-
 std::ostream& operator<<(std::ostream& out, const UIAElemPtr& pElement)
 {
     ElementMeta meta = getElementMeta(pElement);
@@ -156,4 +200,22 @@ std::ostream& operator<<(std::ostream& out, const UIAElemPtr& pElement)
         << "ID\t\t\"" << encodeAnsi(meta.automationId) << "\"" << std::endl
         << "ITEM\t\t\"" << encodeAnsi(meta.itemType) << "\"" << std::endl;
     return out;
+}
+
+int main(int argc, char* argv[])
+{
+    TRY_BEGIN
+    google::InitGoogleLogging(argv[0]);
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    FLAGS_logtostderr = 1;
+    FLAGS_minloglevel = 0;
+    UIAInitializer uiaInit;
+    auto elemList = findElementByProp({
+        { UIA_NamePropertyId, L"Program Manager" },
+        { UIA_ClassNamePropertyId, L"Progman" },
+    });
+    for (const auto elem : elemList) {
+        std::cout << elem << std::endl;
+    }
+    CATCH_ALL
 }

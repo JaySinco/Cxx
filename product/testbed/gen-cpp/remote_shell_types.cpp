@@ -4,14 +4,14 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-#include "service_types.h"
+#include "remote_shell_types.h"
 
 #include <algorithm>
 #include <ostream>
 
 #include <thrift/TToString.h>
 
-namespace cxx { namespace service {
+
 
 
 ComputerInfo::~ComputerInfo() throw() {
@@ -705,4 +705,4 @@ void ShellRtn::printTo(std::ostream& out) const {
   out << ")";
 }
 
-}} // namespace
+

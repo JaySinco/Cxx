@@ -1,16 +1,27 @@
 #define WIN32_LEAN_AND_MEAN
-#include "remote_shell_service.h"
 #include "Windows.h"
 #include "common/utility/base.h"
+#include "common/utility/string_helper.h"
+#include "gen-cpp/RemoteShellService.h"
 #include <Lmcons.h>
 #include <Pdh.h>
 #include <WtsApi32.h>
 #include <array>
 #include <comutil.h>
+#include <thrift/server/TThreadedServer.h>
+#include <thrift/stdcxx.h>
+#include <thrift/transport/TServerSocket.h>
+#include <thrift/transport/TSocket.h>
+#include <thrift/transport/TTransportUtils.h>
 #define MB (1024 * 1024)
 #define GB (1024 * 1024 * 1024)
 
-namespace {
+using namespace cxx;
+using namespace apache::thrift;
+using namespace apache::thrift::concurrency;
+using namespace apache::thrift::protocol;
+using namespace apache::thrift::transport;
+using namespace apache::thrift::server;
 
 std::string GetOsName()
 {
@@ -63,7 +74,7 @@ double GetCPURate()
     return pdhValue.doubleValue;
 }
 
-void GetMemoryStat(cxx::service::MemoryInfo& info)
+void GetMemoryStat(MemoryInfo& info)
 {
     MEMORYSTATUSEX mStatus;
     mStatus.dwLength = sizeof(mStatus);
@@ -91,7 +102,7 @@ double CalculateIOSpeedInPdh(const char* counterPath)
     return speed;
 }
 
-void GetDiskStat(cxx::service::DiskInfo& info, const std::string& driver)
+void GetDiskStat(DiskInfo& info, const std::string& driver)
 {
     DWORDLONG freeBytesAvailable = 0;
     DWORDLONG totalNumberOfBytes = 0;
@@ -115,7 +126,7 @@ void GetDiskStat(cxx::service::DiskInfo& info, const std::string& driver)
     info.writeSpeed = writeSpeed / MB;
 }
 
-void GetNetworkStat(cxx::service::NetworkInfo& info)
+void GetNetworkStat(NetworkInfo& info)
 {
     std::string readSpeedCounterPath = "\\Network Interface(*)\\Bytes Received/sec";
     double readSpeed = CalculateIOSpeedInPdh(readSpeedCounterPath.c_str());
@@ -125,7 +136,7 @@ void GetNetworkStat(cxx::service::NetworkInfo& info)
     info.uploadSpeed = writeSpeed / MB;
 }
 
-void Exec(cxx::service::ShellRtn& rtn, const char* cmd)
+void Exec(ShellRtn& rtn, const char* cmd)
 {
     std::array<char, 128> buffer;
     std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd, "r"), _pclose);
@@ -137,54 +148,64 @@ void Exec(cxx::service::ShellRtn& rtn, const char* cmd)
     while (fgets(buffer.data(), int(buffer.size()), pipe.get()) != nullptr) {
         rtn.standardOutput += buffer.data();
     }
+    rtn.standardOutput = encodeUtf8(decodeAnsi(rtn.standardOutput));
     rtn.success = true;
 }
 
-} // namespace
+class RemoteShellService : public RemoteShellServiceIf {
+public:
+    RemoteShellService() {}
+    ~RemoteShellService() override {}
+    void GetComputerInfo(ComputerInfo& _return) override;
+    void GetCpuInfo(CpuInfo& _return) override;
+    void GetMemoryInfo(MemoryInfo& _return) override;
+    void GetDiskInfo(DiskInfo& _return, const std::string& driver) override;
+    void GetNetworkInfo(NetworkInfo& _return) override;
+    void Execute(ShellRtn& _return, const std::string& cmdWithArgs) override;
+};
 
-namespace cxx {
+void RemoteShellService::GetComputerInfo(ComputerInfo& _return)
+{
+    _return.osName = GetOsName();
+    _return.userName = GetCurrentUserName();
+}
 
-namespace service {
+void RemoteShellService::GetCpuInfo(CpuInfo& _return)
+{
+    _return.rate = GetCPURate();
+}
 
-    RemoteShellService::RemoteShellService()
-    {
-    }
+void RemoteShellService::GetMemoryInfo(MemoryInfo& _return)
+{
+    GetMemoryStat(_return);
+}
 
-    RemoteShellService::~RemoteShellService()
-    {
-    }
+void RemoteShellService::GetDiskInfo(DiskInfo& _return, const std::string& driver)
+{
+    GetDiskStat(_return, driver);
+}
 
-    void RemoteShellService::GetComputerInfo(ComputerInfo& _return)
-    {
-        _return.osName = GetOsName();
-        _return.userName = GetCurrentUserName();
-    }
+void RemoteShellService::GetNetworkInfo(NetworkInfo& _return)
+{
+    GetNetworkStat(_return);
+}
 
-    void RemoteShellService::GetCpuInfo(CpuInfo& _return)
-    {
-        _return.rate = GetCPURate();
-    }
+void RemoteShellService::Execute(ShellRtn& _return, const std::string& cmdWithArgs)
+{
+    Exec(_return, cmdWithArgs.c_str());
+}
 
-    void RemoteShellService::GetMemoryInfo(MemoryInfo& _return)
-    {
-        GetMemoryStat(_return);
-    }
-
-    void RemoteShellService::GetDiskInfo(DiskInfo& _return, const std::string& driver)
-    {
-        GetDiskStat(_return, driver);
-    }
-
-    void RemoteShellService::GetNetworkInfo(NetworkInfo& _return)
-    {
-        GetNetworkStat(_return);
-    }
-
-    void RemoteShellService::Execute(ShellRtn& _return, const std::string& cmdWithArgs)
-    {
-        Exec(_return, cmdWithArgs.c_str());
-    }
-
-} // namespace service
-
-} // namespace cxx
+int main(int argc, char** argv)
+{
+    google::InitGoogleLogging(argv[0]);
+    FLAGS_logtostderr = 1;
+    FLAGS_minloglevel = 0;
+    TThreadedServer server(
+        stdcxx::make_shared<RemoteShellServiceProcessor>(stdcxx::make_shared<RemoteShellService>()),
+        stdcxx::make_shared<TServerSocket>(9090), //port
+        stdcxx::make_shared<TBufferedTransportFactory>(),
+        stdcxx::make_shared<TBinaryProtocolFactory>());
+    LOG(INFO) << "starting the server...";
+    server.serve();
+    LOG(INFO) << "done.";
+}

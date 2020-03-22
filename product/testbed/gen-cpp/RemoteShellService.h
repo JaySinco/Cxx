@@ -9,9 +9,9 @@
 
 #include <thrift/TDispatchProcessor.h>
 #include <thrift/async/TConcurrentClientSyncInfo.h>
-#include "service_types.h"
+#include "remote_shell_types.h"
 
-namespace cxx { namespace service {
+
 
 #ifdef _MSC_VER
   #pragma warning( push )
@@ -873,6 +873,6 @@ class RemoteShellServiceConcurrentClient : virtual public RemoteShellServiceIf {
   #pragma warning( pop )
 #endif
 
-}} // namespace
+
 
 #endif

@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
     google::InitGoogleLogging(argv[0]);
     FLAGS_logtostderr = 1;
     FLAGS_minloglevel = 0;
-    GLFWwindow* window = initForWindow(gWidth, gHeight, "OpenGL_Functest");
+    GLFWwindow* window = initForWindow(gWidth, gHeight, "Object Viewer");
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     gStorage = new Storage("ST_global");

@@ -29,13 +29,13 @@ target_link_libraries(imgui_t
 add_executable(http_t http.cc)
 target_link_libraries(http_t
     common_utility
-    ws2_32
-    wldap32
-    normaliz
     libcurl
     libssl
     libcrypto
     zlib
+    ws2_32
+    wldap32
+    normaliz
     tinyxml
     )
 
@@ -54,4 +54,27 @@ add_executable(lua_t lua.cc)
 target_link_libraries(lua_t
     common_utility
     liblua
+    )
+
+add_executable(ui_automation_t ui_automation.cc)
+target_link_libraries(ui_automation_t
+    common_utility
+    )
+
+add_executable(screen_locker screen_locker.cc)
+target_link_libraries(screen_locker
+    common_utility
+    )
+
+add_executable(remote_shell
+    gen-cpp/remote_shell_types.cpp
+    gen-cpp/RemoteShellService.cpp
+    remote_shell.cc
+    )
+target_compile_definitions(remote_shell PUBLIC BOOST_ALL_NO_LIB)
+target_link_libraries(remote_shell
+    common_utility
+    thrift
+    boost-atomic
+    pdh
     )

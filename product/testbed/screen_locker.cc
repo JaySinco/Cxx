@@ -1,10 +1,61 @@
-#include "screen_locker.h"
 #include "common/utility/base.h"
 #include "common/utility/string_helper.h"
+#include <atomic>
+#include <chrono>
 #include <future>
+#include <map>
+#include <string>
 #include <thread>
+#define OEMRESOURCE
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 using namespace cxx;
+
+class ScreenLocker {
+public:
+    static void Popup(
+        const std::string& password_ascii = "",
+        const std::string& hintWord_u8 = u8"请输入密码: ",
+        const std::string& backgroundFile_u8 = u8"background.bmp",
+        const std::string& cursorFile_u8 = u8"point.cur",
+        bool blockMouseInput = false,
+        bool blockKeyboardInput = false,
+        int msPinFreq = 500);
+
+    static void Close();
+
+private:
+    class ReplaceSystemCursor {
+    public:
+        ReplaceSystemCursor(const std::wstring& iconFile);
+        ~ReplaceSystemCursor();
+
+    private:
+        std::map<int, HCURSOR> oldSystemCursor;
+    };
+
+    static void initScreen();
+    static void updateScreen();
+    static void drawRectBorder(HDC hdc, int left, int top, int right, int bottom);
+    static LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+    static LRESULT CALLBACK mouseProc(INT nCode, WPARAM wParam, LPARAM lParam);
+    static LRESULT CALLBACK keyboardProc(INT nCode, WPARAM wParam, LPARAM lParam);
+
+    static HWND hwnd;
+    static bool blockMouse;
+    static bool blockKeyboard;
+    static HHOOK mouseHook;
+    static HHOOK keyboardHook;
+    static int screenWidth;
+    static int screenHeight;
+    static std::string inputPwd;
+    static std::string unlockCode;
+    static std::wstring curFile;
+    static std::wstring backgroundFile;
+    static std::wstring hintWord;
+    static std::atomic<bool> done;
+};
 
 HWND ScreenLocker::hwnd;
 bool ScreenLocker::blockMouse;
@@ -320,4 +371,29 @@ ScreenLocker::ReplaceSystemCursor::~ReplaceSystemCursor()
             LOG_LAST_WIN_ERROR("failed to restore system cursor, id=" << it.first);
         }
     }
+}
+
+int main(int argc, char* argv[])
+{
+    google::InitGoogleLogging(argv[0]);
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+    FLAGS_logtostderr = 1;
+    FLAGS_minloglevel = 0;
+    if (!SetProcessDPIAware()) {
+        LOG_LAST_WIN_ERROR("failed to set process dpi aware");
+    }
+    std::thread(
+        [] {
+            std::this_thread::sleep_for(std::chrono::seconds(10));
+            ScreenLocker::Close();
+        })
+        .detach();
+    ScreenLocker::Popup(
+        "",
+        u8"请输入密码: ",
+        getResAbsPath("testbed", "background.bmp"),
+        getResAbsPath("testbed", "point.cur"),
+        false,
+        false,
+        500);
 }

@@ -15,5 +15,4 @@ function find_root() {
 }
 
 root_dir=`find_root "${current_dir}" 0`
-cd resources
-"${root_dir}/external/windows/x64/thrift/bin/thrift.exe" -r -v --gen cpp -gen js:node service.thrift
+"${root_dir}/external/windows/x64/thrift/bin/thrift.exe" -r -v --gen cpp -gen js:node $1
