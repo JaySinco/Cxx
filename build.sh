@@ -18,7 +18,14 @@ function find_root() {
 
 root_dir=`find_root "${current_dir}" 0`
 relative_dir=`realpath --relative-to "$root_dir" "$current_dir"`
-# echo "#define ROOT_DIR \"${root_dir}\"" > $root_dir/.root
+
+# update ROOT_DIR
+macro_str="#define ROOT_DIR \"${root_dir}\""
+file_header=`head $root_dir/.root`
+if [ "$file_header" != "$macro_str" ]
+then
+    echo $macro_str > $root_dir/.root
+fi
 
 echo
 echo "##############################################################"

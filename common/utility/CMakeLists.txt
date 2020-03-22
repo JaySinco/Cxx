@@ -3,6 +3,7 @@ add_custom_target(__target_${MODULE_NAME})
 
 set(LIB_SRCS 
     base.h
+    base.cpp
     string_helper.h
     string_helper.cpp
     )

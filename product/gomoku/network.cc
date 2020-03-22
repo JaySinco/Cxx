@@ -1,4 +1,6 @@
 #include "network.h"
+#define NOT_INCLUDE_GLOG
+#include "common/utility/base.h"
 #include <iomanip>
 
 #define MX_TRY \
@@ -325,7 +327,7 @@ std::string FIRNet::make_param_file_name()
     std::ostringstream filename;
     filename << "FIR-" << BOARD_MAX_COL << "x" << NET_NUM_FILTER
              << "i" << NET_NUM_RESIDUAL_BLOCK << "@" << update_cnt << ".param";
-    return filename.str();
+    return cxx::getResAbsPath("gomoku", filename.str());
 }
 
 void FIRNet::load_param()

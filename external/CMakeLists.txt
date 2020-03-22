@@ -34,6 +34,9 @@ set_target_properties(libcurl PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/e
 add_library(boost-atomic STATIC IMPORTED GLOBAL)
 set_target_properties(boost-atomic PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/boost/lib/libboost_atomic-vc141-mt-x64-1_71.lib)
 
+add_library(boost_filesystem STATIC IMPORTED GLOBAL)
+set_target_properties(boost_filesystem PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/boost/lib/libboost_filesystem-vc141-mt-x64-1_71.lib)
+
 add_library(mongoc STATIC IMPORTED GLOBAL)
 set_target_properties(mongoc PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/lib/mongoc-static-1.0.lib)
 

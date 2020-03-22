@@ -1,9 +1,11 @@
 #pragma once
 #include <string>
+#ifndef NOT_INCLUDE_GLOG
 #define GLOG_NO_ABBREVIATED_SEVERITIES
 #define GOOGLE_GLOG_DLL_DECL
 #include <gflags/gflags.h>
 #include <glog/logging.h>
+#endif
 #if __cplusplus >= 201703L
 #include <pprint/pprint.hpp>
 #endif
@@ -40,11 +42,6 @@ std::string tostr(T&& Arg)
 }
 #endif
 
-inline std::string getResAbsPath(
-    const std::string& product,
-    const std::string& fileName)
-{
-    return std::string(ROOT_DIR) + "\\" + product + "\\" + fileName;
-}
+std::string getResAbsPath(const std::string& product, const std::string& fileName);
 
 } // namespace cxx
