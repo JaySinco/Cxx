@@ -130,6 +130,10 @@ macro (add_executable)
             $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>)
     endif()
 
+    if (MSVC_DEBUG)
+      target_compile_options(${EXECUTABLE_NAME} PRIVATE /Z7)
+      target_link_options(${EXECUTABLE_NAME} PRIVATE /INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF)
+    endif()
 endmacro()
 
 macro (add_library)

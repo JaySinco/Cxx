@@ -48,8 +48,9 @@ mkdir -p dest/ &&\
 pushd dest/ && \
 
 cmake -G "Visual Studio 15 2017 Win64"  ../ \
--DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=${current_dir}/bin/ \
--DMSVC_RUNTIME=dynamic \
+    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=${current_dir}/bin/ \
+    -DMSVC_DEBUG=off \
+    -DMSVC_RUNTIME=dynamic \
 && \
 popd  &&\
 MSBuild.exe -p:Configuration=Release dest/$relative_dir/__target*.vcxproj -maxcpucount $@ && \
