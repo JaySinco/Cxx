@@ -131,7 +131,7 @@ macro (add_executable)
     endif()
 
     if (MSVC_DEBUG)
-      target_compile_options(${EXECUTABLE_NAME} PRIVATE /Z7)
+      target_compile_options(${EXECUTABLE_NAME} PRIVATE /Z7 /Od)
       target_link_options(${EXECUTABLE_NAME} PRIVATE /INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF)
     endif()
 endmacro()
