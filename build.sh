@@ -47,11 +47,18 @@ pushd "$root_dir"
 mkdir -p dest/ &&\
 pushd dest/ && \
 
+
+if [ "${1}" == "debug" ]
+then
+    debug_flag="on"
+else
+    debug_flag="off"
+fi
 cmake -G "Visual Studio 15 2017 Win64"  ../ \
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=${current_dir}/bin/ \
-    -DMSVC_DEBUG=off \
+    -DMSVC_DEBUG=${debug_flag} \
     -DMSVC_RUNTIME=dynamic \
 && \
 popd  &&\
-MSBuild.exe -p:Configuration=Release dest/$relative_dir/__target*.vcxproj -maxcpucount $@ && \
+MSBuild.exe -p:Configuration=Release dest/$relative_dir/__target*.vcxproj -maxcpucount && \
 popd
