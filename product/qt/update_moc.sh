@@ -7,12 +7,13 @@ function find_root() {
     >&2 echo "$_dep: $_pwd"
     sleep 0.1
     if [ -f "$_pwd/.root" ]
-    then 
+    then
         readlink -f $_pwd
-    else 
+    else
         find_root "$_pwd/../" $(expr $_dep + 1)
     fi
 }
 
 root_dir=`find_root "${current_dir}" 0`
-"${root_dir}/external/windows/x64/thrift/bin/thrift.exe" -r -v --gen cpp -gen js:node $1
+MOC="${root_dir}/external/windows/x64/qt/bin/moc.exe"
+${MOC} widget.h > widget.moc.cc

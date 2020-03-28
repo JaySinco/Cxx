@@ -37,8 +37,8 @@ set_target_properties(libcurl PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/e
 add_library(boost-atomic STATIC IMPORTED GLOBAL)
 set_target_properties(boost-atomic PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/boost/lib/libboost_atomic-vc141-mt-x64-1_71.lib)
 
-add_library(boost_filesystem STATIC IMPORTED GLOBAL)
-set_target_properties(boost_filesystem PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/boost/lib/libboost_filesystem-vc141-mt-x64-1_71.lib)
+add_library(boost-filesystem STATIC IMPORTED GLOBAL)
+set_target_properties(boost-filesystem PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/boost/lib/libboost_filesystem-vc141-mt-x64-1_71.lib)
 
 add_library(mongoc STATIC IMPORTED GLOBAL)
 set_target_properties(mongoc PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/lib/mongoc-static-1.0.lib)
@@ -54,6 +54,36 @@ set_target_properties(bsoncxx PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/e
 
 add_library(mongo-all STATIC ${CMAKE_SOURCE_DIR}/.trash.c)
 target_link_libraries(mongo-all bson mongoc bsoncxx mongocxx)
+
+add_library(qt-all STATIC ${CMAKE_SOURCE_DIR}/.trash.c)
+target_link_libraries(qt-all
+    Qt5Core.lib
+    Qt5Widgets.lib
+    Qt5Gui.lib
+    Qt5WindowsUIAutomationSupport.lib
+    qtlibpng.lib
+    qtharfbuzz.lib
+    qwindows.lib
+    qtpcre2.lib
+    libEGL.lib
+    libGLESv2.lib
+    Qt5FontDatabaseSupport.lib
+    qtfreetype.lib
+    translator.lib
+    preprocessor.lib
+    Qt5EventDispatcherSupport.lib
+    Qt5ThemeSupport.lib
+    ws2_32.lib
+    Netapi32.lib
+    version.lib
+    winmm.lib
+    Userenv.lib
+    opengl32.lib
+    Dwmapi.lib
+    Wtsapi32.lib
+    Imm32.lib
+    d3d9.lib
+    )
 
 add_subdirectory(glad)
 add_subdirectory(imgui)

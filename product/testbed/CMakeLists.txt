@@ -78,3 +78,9 @@ target_link_libraries(remote_shell
     boost-atomic
     pdh
     )
+
+add_executable(queue_t queue.cc)
+target_link_libraries(queue_t
+    common_utility
+    gtest
+    )
