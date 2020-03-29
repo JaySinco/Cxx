@@ -1,7 +1,7 @@
 #include "common/utility/base.h"
 #include "widget.h"
-#include <QtCore/QtPlugin>
-#include <QtWidgets/QApplication>
+#include <QApplication>
+#include <QtPlugin>
 
 Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 

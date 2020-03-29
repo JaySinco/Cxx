@@ -1,7 +1,9 @@
 #!/bin/bash
 
-_dir=`dirname $(readlink -f $0)`
-current_dir=`readlink -f $_dir`
+# _dir=`dirname $(readlink -f $0)`
+# current_dir=`readlink -f $_dir`
+
+current_dir=`readlink -f .`
 
 function find_root() {
     _pwd=`readlink -f "${1}"`
