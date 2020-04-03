@@ -84,3 +84,9 @@ target_link_libraries(queue_t
     common_utility
     gtest
     )
+
+add_executable(qt_t qt.cc)
+target_link_libraries(qt_t
+    common_utility
+    qt-all
+    )
