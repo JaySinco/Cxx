@@ -148,7 +148,6 @@ void Exec(ShellRtn& rtn, const char* cmd)
     while (fgets(buffer.data(), int(buffer.size()), pipe.get()) != nullptr) {
         rtn.standardOutput += buffer.data();
     }
-    rtn.standardOutput = encodeUtf8(decodeAnsi(rtn.standardOutput));
     rtn.success = true;
 }
 
@@ -197,15 +196,32 @@ void RemoteShellService::Execute(ShellRtn& _return, const std::string& cmdWithAr
 
 int main(int argc, char** argv)
 {
+    TRY_BEGIN
     google::InitGoogleLogging(argv[0]);
     FLAGS_logtostderr = 1;
     FLAGS_minloglevel = 0;
+    int port = 9090;
     TThreadedServer server(
         stdcxx::make_shared<RemoteShellServiceProcessor>(stdcxx::make_shared<RemoteShellService>()),
-        stdcxx::make_shared<TServerSocket>(9090), //port
+        stdcxx::make_shared<TServerSocket>(port), //port
         stdcxx::make_shared<TBufferedTransportFactory>(),
         stdcxx::make_shared<TBinaryProtocolFactory>());
-    LOG(INFO) << "starting the server...";
-    server.serve();
-    LOG(INFO) << "done.";
+    LOG(INFO) << "starting rpc server, port=" << port;
+    std::thread t([&] {
+        server.serve();
+    });
+    std::shared_ptr<TTransport> socket(new TSocket("localhost", port));
+    std::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
+    std::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+    RemoteShellServiceClient client(protocol);
+    transport->open();
+    ShellRtn shellRet;
+    client.Execute(shellRet, "date /T");
+    LOG(INFO) << shellRet;
+    DiskInfo diskRet;
+    client.GetDiskInfo(diskRet, "c:/");
+    LOG(INFO) << diskRet;
+    server.stop();
+    t.join();
+    CATCH_ALL
 }

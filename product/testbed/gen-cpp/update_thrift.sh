@@ -16,4 +16,4 @@ function find_root() {
 
 root_dir=`find_root "${current_dir}" 0`
 THRIFT="${root_dir}/external/windows/x64/thrift/bin/thrift.exe"
-${THRIFT} -r -v --gen cpp -gen js:node remote_shell.thrift
+${THRIFT} -r -v --gen cpp -o .. remote_shell.thrift
