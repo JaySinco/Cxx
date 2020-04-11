@@ -1,4 +1,6 @@
 #include "common/utility/base.h"
+#include <iomanip>
+#include <iostream>
 #include <map>
 #define UNICODE
 #define WIN32_LEAN_AND_MEAN
@@ -47,7 +49,12 @@ LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
         EndPaint(hwnd, &ps);
         return 0;
     }
+    case WM_DRAWITEM:
     case WM_COMMAND: {
+        std::cout << (message == WM_DRAWITEM ? "WM_DRAWITEM" : "WM_COMMAND") << " [W]0x"
+                  << std::hex << std::setw(4) << std::setfill('0') << wParam << " [L]0x"
+                  << std::hex << std::setw(4) << std::setfill('0') << lParam
+                  << std::endl;
         int id = LOWORD(wParam);
         if (id == ID_CHECKBTN) {
             HWND hbox = GetDlgItem(hwnd, ID_CHECKBOX);
@@ -66,6 +73,12 @@ LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
 {
+    AttachConsole(ATTACH_PARENT_PROCESS);
+    FILE* pf;
+    freopen_s(&pf, "CONIN$", "r+t", stdin);
+    freopen_s(&pf, "CONOUT$", "w+t", stdout);
+    std::cout << std::endl;
+
     static TCHAR szAppName[] = TEXT("GDI_t");
     WNDCLASS wc = { 0 };
     wc.style = CS_HREDRAW | CS_VREDRAW;
