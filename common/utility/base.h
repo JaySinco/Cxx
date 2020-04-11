@@ -42,6 +42,12 @@ std::string tostr(T&& Arg)
 }
 #endif
 
+template <class T>
+constexpr int arrLen(T& array)
+{
+    return (sizeof(array) / sizeof(array[0]));
+}
+
 std::string getResAbsPath(const std::string& product, const std::string& fileName);
 
 } // namespace cxx

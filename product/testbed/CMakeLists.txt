@@ -1,10 +1,11 @@
 set(MODULE_NAME product_testbed)
 add_custom_target(__target_${MODULE_NAME})
 
-add_executable(testbed testbed.cc)
-set_target_properties (testbed PROPERTIES CXX_STANDARD 17)
-target_compile_options(testbed PUBLIC "/Zc:__cplusplus")
-target_link_libraries(testbed
+add_executable(gdi_t gdi.cc)
+set_target_properties (gdi_t PROPERTIES CXX_STANDARD 17)
+target_compile_options(gdi_t PUBLIC "/Zc:__cplusplus")
+target_link_options(gdi_t PRIVATE "/subsystem:windows")
+target_link_libraries(gdi_t
     common_utility
     )
 
