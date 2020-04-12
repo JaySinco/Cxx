@@ -1,5 +1,4 @@
 #include "common/utility/base.h"
-#include "gen-cpp/resources.h"
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -83,7 +82,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     static TCHAR szAppName[] = TEXT("GDI_t");
     WNDCLASS wc = { 0 };
     wc.style = CS_HREDRAW | CS_VREDRAW;
-    wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPICON));
+    wc.hIcon = LoadIcon(hInstance, TEXT("gdi_icon"));
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.lpszClassName = szAppName;
     wc.lpfnWndProc = windowProc;
