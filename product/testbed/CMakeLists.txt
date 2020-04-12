@@ -1,7 +1,10 @@
 set(MODULE_NAME product_testbed)
 add_custom_target(__target_${MODULE_NAME})
 
-add_executable(gdi_t gdi.cc)
+add_executable(gdi_t
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp/resources.rc
+    gdi.cc
+    )
 set_target_properties (gdi_t PROPERTIES CXX_STANDARD 17)
 target_compile_options(gdi_t PUBLIC "/Zc:__cplusplus")
 target_link_options(gdi_t PRIVATE "/subsystem:windows")
