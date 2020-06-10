@@ -6,43 +6,10 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #endif
-#if __cplusplus >= 201703L
-#include <pprint/pprint.hpp>
-#endif
-#define TRY_BEGIN \
-    try {
-#define CATCH_ALL                                            \
-    }                                                        \
-    catch (const std::exception& e)                          \
-    {                                                        \
-        LOG(ERROR) << "uncaught exception <"                 \
-                   << typeid(e).name() << ">: " << e.what(); \
-        std::exit(0);                                        \
-    }                                                        \
-    catch (...)                                              \
-    {                                                        \
-        LOG(ERROR) << "uncaught exception <unknow type>";    \
-        std::exit(0);                                        \
-    }
-#include <.root>
-#ifdef _WIN32
-#define LOG_LAST_WIN_ERROR(msg) LOG(ERROR) << msg << ", errno=" << GetLastError()
-#endif
 
 namespace cxx {
 
-#if __cplusplus >= 201703L
 template <typename T>
-std::string tostr(T&& Arg)
-{
-    std::ostringstream ss;
-    pprint::PrettyPrinter printer(ss);
-    printer.print(std::forward<T>(Arg));
-    return ss.str();
-}
-#endif
-
-template <class T>
 constexpr int arrLen(T& array)
 {
     return (sizeof(array) / sizeof(array[0]));

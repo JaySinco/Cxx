@@ -15,15 +15,15 @@ set(LIB_SRCS
     )
 
 add_executable(gomoku ${LIB_SRCS})
-target_compile_options(gomoku PUBLIC /W1)
 target_link_libraries(gomoku
-    libmxnet
     common_utility
+    libmxnet
     )
 
 set(COPY_FILE_LIST
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/libmxnet.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/bin/mkldnn.dll
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/lib/libmxnet.so
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/lib/libmkldnn.so.1
+    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mxnet/lib/libomp.so
     )
 
 add_custom_command(TARGET gomoku

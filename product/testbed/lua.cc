@@ -1,8 +1,10 @@
+extern "C" {
 #include "lua.h"
-#include "common/utility/base.h"
-#include "common/utility/string_helper.h"
 #include "lauxlib.h"
 #include "lualib.h"
+}
+#include "common/utility/base.h"
+#include "common/utility/string_helper.h"
 #include <sstream>
 #include <string>
 
@@ -17,7 +19,7 @@ std::string luaStringfy(lua_State* L, int stackIndex, bool quoted = true)
     switch (t) {
     case LUA_TSTRING: {
         std::string sep = quoted ? "\"" : "";
-        ss << sep << encodeAnsi(decodeUtf8(lua_tostring(L, stackIndex))) << sep;
+        ss << sep << lua_tostring(L, stackIndex) << sep;
         break;
     }
     case LUA_TBOOLEAN: {

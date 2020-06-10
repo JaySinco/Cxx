@@ -3,23 +3,15 @@ cmake_minimum_required(VERSION 3.2)
 project(CXX)
 add_custom_target(__target_root)
 add_custom_target(___trash_do_nothing)
-add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
-add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 if (NOT TARGET_ABI)
     set(TARGET_ABI "x64")
 endif()
 if (NOT TARGET_OS)
-    set(TARGET_OS "windows")
+    set(TARGET_OS "linux")
 endif()
 message(STATUS "ABI -> " ${TARGET_ABI})
 message(STATUS "OS -> " ${TARGET_OS})
-
-set(WINDOWS_DLL_LIST
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/openssl/bin/libssl-1_1-x64.dll
-    ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/openssl/bin/libcrypto-1_1-x64.dll
-)
-message(STATUS "Windows dll -> " ${WINDOWS_DLL_LIST})
 
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR})
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/gflags/include/)
@@ -40,9 +32,6 @@ list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/pprint/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/stb/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/concurrentqueue/include/)
-list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/qt/include/)
-list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/qt/include/QtCore/)
-list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/qt/include/QtWidgets/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/glad/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/imgui/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/lua/include/)
@@ -51,11 +40,10 @@ list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/tinyxml/include/)
 message(STATUS "Include dir -> " ${INCLUDE_DIR})
 include_directories(${INCLUDE_DIR})
 
-set(LINK_DIR ${CMAKE_SOURCE_DIR})
-list(APPEND LINK_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/qt/lib/)
-list(APPEND LINK_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/qt/plugins/platforms/)
-message(STATUS "Link dir -> " ${LINK_DIR})
-link_directories(${LINK_DIR})
+# set(LINK_DIR ${CMAKE_SOURCE_DIR})
+# list(APPEND LINK_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/xxx/lib/)
+# message(STATUS "Link dir -> " ${LINK_DIR})
+# link_directories(${LINK_DIR})
 
 macro(CAR var)
     SET(${var} ${ARGV1})
@@ -76,47 +64,6 @@ macro (add_custom_target)
     endif()
 endmacro()
 
-macro(configure_msvc_runtime)
-  if(MSVC)
-
-    # Default to statically-linked runtime.
-    if("${MSVC_RUNTIME}" STREQUAL "")
-      set(MSVC_RUNTIME "static")
-    endif()
-
-    # Set compiler options.
-    set(variables
-      CMAKE_C_FLAGS_DEBUG
-      CMAKE_C_FLAGS_MINSIZEREL
-      CMAKE_C_FLAGS_RELEASE
-      CMAKE_C_FLAGS_RELWITHDEBINFO
-      CMAKE_CXX_FLAGS_DEBUG
-      CMAKE_CXX_FLAGS_MINSIZEREL
-      CMAKE_CXX_FLAGS_RELEASE
-      CMAKE_CXX_FLAGS_RELWITHDEBINFO
-    )
-    if(${MSVC_RUNTIME} STREQUAL "static")
-      message(STATUS
-        "MSVC -> forcing use of statically-linked runtime."
-      )
-      foreach(variable ${variables})
-        if(${variable} MATCHES "/MD")
-          string(REGEX REPLACE "/MD" "/MT" ${variable} "${${variable}}")
-        endif()
-      endforeach()
-    else()
-      message(STATUS
-        "MSVC -> forcing use of dynamically-linked runtime."
-      )
-      foreach(variable ${variables})
-        if(${variable} MATCHES "/MT")
-          string(REGEX REPLACE "/MT" "/MD" ${variable} "${${variable}}")
-        endif()
-      endforeach()
-    endif()
-  endif()
-endmacro()
-
 macro (add_executable)
     CAR(EXECUTABLE_NAME ${ARGN})
     CDR(ARGUMENTS ${ARGN})
@@ -127,22 +74,10 @@ macro (add_executable)
         add_dependencies(__target_${MODULE_NAME} 
             ${EXECUTABLE_NAME}
             )
+        message(STATUS "Copy build script to source directory.")
+        file(COPY ${CMAKE_SOURCE_DIR}/build.sh DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
     else()
         message(FATAL_ERROR "missing target: __target_${MODULE_NAME}, current_dir: ${CMAKE_CURRENT_SOURCE_DIR}")
-    endif()
-
-    if(MSVC)
-        message(STATUS "Copy dll dependencies to bin directory.")
-        # Copy DLL files to output directory
-        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${WINDOWS_DLL_LIST}
-            $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>)
-    endif()
-
-    if (MSVC_DEBUG)
-      target_compile_options(${EXECUTABLE_NAME} PRIVATE /Z7 /Od)
-      target_link_options(${EXECUTABLE_NAME} PRIVATE /INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF)
     endif()
 endmacro()
 
@@ -168,7 +103,8 @@ macro (add_subdirectory)
     _add_subdirectory (${DIRNAME})
 endmacro()
 
-configure_msvc_runtime()
+set(CMAKE_INSTALL_RPATH "$ORIGIN")
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
 add_subdirectory(external)
 add_subdirectory(common)

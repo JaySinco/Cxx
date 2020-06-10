@@ -3,8 +3,9 @@
 source ../set_env.sh
 mkdir -p build
 cd build
-
-cmake -G "Visual Studio 15 2017 Win64" -T "host=x64"  ../glfw-3.3.2 \
-    -DCMAKE_INSTALL_PREFIX="${root_dir}/external/windows/x64/glfw" && \
-MSBuild.exe -p:Configuration=Release *.sln -maxcpucount $@ && \
-MSBuild.exe INSTALL.vcxproj -p:Configuration=Release
+sudo apt install libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev \
+    libxi-dev libgl1-mesa-dev && \
+cmake -G "$generator" ../glfw-3.3.2 \
+    -DCMAKE_INSTALL_PREFIX="${external_dir}/glfw" \
+&& \
+$build && $install

@@ -24,9 +24,12 @@ add_library(${MODULE_NAME} ${LIB_SRCS})
 target_link_libraries(${MODULE_NAME}
     common_utility
     tinyobjloader
-    opengl32
+    GL
     glfw
     glad
+    X11
+    dl
+    pthread
     )
 
 add_executable(objviewer objviewer.cc)

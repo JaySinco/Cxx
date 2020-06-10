@@ -12,5 +12,4 @@ add_library(${MODULE_NAME} STATIC ${LIB_SRCS})
 target_link_libraries(${MODULE_NAME}
     glog
     gflags
-    shlwapi
     )

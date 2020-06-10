@@ -1,4 +1,4 @@
-set(MODULE_NAME liblua)
+set(MODULE_NAME lua-core)
 add_custom_target(__target_${MODULE_NAME})
 
 set(LIB_SRCS
@@ -37,7 +37,6 @@ set(LIB_SRCS
     src/lzio.c
     )
 add_library(${MODULE_NAME} ${LIB_SRCS})
-target_compile_options(${MODULE_NAME} PRIVATE /TP /W2 /EHsc)
 
 # add_executable(lua src/lua.c)
 # target_link_libraries(lua ${MODULE_NAME})
