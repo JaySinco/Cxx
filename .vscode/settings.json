@@ -8,5 +8,25 @@
         "bin": true,
         "dest": true,
         "stage": true
-    }
+    },
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}",
+        "${workspaceFolder}/external/linux/x64/gflags/include/",
+        "${workspaceFolder}/external/linux/x64/glog/include/",
+        "${workspaceFolder}/external/linux/x64/gtest/include/",
+        "${workspaceFolder}/external/linux/x64/openssl/include/",
+        "${workspaceFolder}/external/linux/x64/mxnet/include/",
+        "${workspaceFolder}/external/linux/x64/glfw/include/",
+        "${workspaceFolder}/external/linux/x64/thrift/include/",
+        "${workspaceFolder}/external/linux/x64/boost/include/",
+        "${workspaceFolder}/external/linux/x64/curl/include/",
+        "${workspaceFolder}/external/linux/x64/zlib/include/",
+        "${workspaceFolder}/external/linux/x64/mongo/include/bsoncxx/v_noabi/",
+        "${workspaceFolder}/external/linux/x64/mongo/include/mongocxx/v_noabi/",
+        "${workspaceFolder}/external/linux/x64/glm/include/",
+        "${workspaceFolder}/external/linux/x64/stb/include/",
+        "${workspaceFolder}/external/glad/include/",
+        "${workspaceFolder}/external/lua/include/",
+        "${workspaceFolder}/external/tinyobjloader/include/"
+    ]
 }

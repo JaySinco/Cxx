@@ -6,4 +6,5 @@ int main(int argc, char* argv[])
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     FLAGS_logtostderr = 1;
     FLAGS_minloglevel = 0;
+    LOG(INFO) << "hello world!";
 }
