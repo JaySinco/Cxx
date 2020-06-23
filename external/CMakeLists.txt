@@ -52,8 +52,48 @@ set_target_properties(mongocxx PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/
 add_library(bsoncxx STATIC IMPORTED GLOBAL)
 set_target_properties(bsoncxx PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/lib/libbsoncxx-static.a)
 
-add_library(mongo-all STATIC ${CMAKE_SOURCE_DIR}/.trash.c)
-target_link_libraries(mongo-all bson mongoc bsoncxx mongocxx)
+add_library(mongo_all STATIC ${CMAKE_SOURCE_DIR}/.trash.c)
+target_link_libraries(mongo_all bson mongoc bsoncxx mongocxx)
+
+add_library(opencv_highgui STATIC IMPORTED GLOBAL)
+set_target_properties(opencv_highgui PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/lib/libopencv_highgui.a)
+
+add_library(opencv_imgproc STATIC IMPORTED GLOBAL)
+set_target_properties(opencv_imgproc PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/lib/libopencv_imgproc.a)
+
+add_library(opencv_core STATIC IMPORTED GLOBAL)
+set_target_properties(opencv_core PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/lib/libopencv_core.a)
+
+add_library(opencv_imgcodecs STATIC IMPORTED GLOBAL)
+set_target_properties(opencv_imgcodecs PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/lib/libopencv_imgcodecs.a)
+
+add_library(libtiff STATIC IMPORTED GLOBAL)
+set_target_properties(libtiff PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/share/OpenCV/3rdparty/lib/liblibtiff.a)
+
+add_library(libjasper STATIC IMPORTED GLOBAL)
+set_target_properties(libjasper PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/share/OpenCV/3rdparty/lib/liblibjasper.a)
+
+add_library(libjpeg-turbo STATIC IMPORTED GLOBAL)
+set_target_properties(libjpeg-turbo PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/share/OpenCV/3rdparty/lib/liblibjpeg-turbo.a)
+
+add_library(libpng STATIC IMPORTED GLOBAL)
+set_target_properties(libpng PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/share/OpenCV/3rdparty/lib/liblibpng.a)
+
+add_library(IlmImf STATIC IMPORTED GLOBAL)
+set_target_properties(IlmImf PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/share/OpenCV/3rdparty/lib/libIlmImf.a)
+
+add_library(libwebp STATIC IMPORTED GLOBAL)
+set_target_properties(libwebp PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/share/OpenCV/3rdparty/lib/liblibwebp.a)
+
+add_library(ittnotify STATIC IMPORTED GLOBAL)
+set_target_properties(ittnotify PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/share/OpenCV/3rdparty/lib/libittnotify.a)
+
+add_library(opencv_all STATIC ${CMAKE_SOURCE_DIR}/.trash.c)
+target_link_libraries(opencv_all
+    opencv_highgui opencv_imgcodecs opencv_imgproc opencv_core
+    libtiff libjasper libjpeg-turbo libpng IlmImf libwebp ittnotify zlib
+    gtk-x11-2.0 gdk-x11-2.0 cairo gdk_pixbuf-2.0 gobject-2.0 glib-2.0
+    pthread dl)
 
 add_subdirectory(glad)
 add_subdirectory(lua)

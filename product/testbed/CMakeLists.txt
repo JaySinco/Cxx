@@ -9,5 +9,5 @@ target_link_libraries(testbed
 add_executable(lua_t lua.cc)
 target_link_libraries(lua_t
     common_utility
-    lua-core
+    lua_core
     )
