@@ -29,5 +29,6 @@
         "${workspaceFolder}/external/glad/include/",
         "${workspaceFolder}/external/lua/include/",
         "${workspaceFolder}/external/tinyobjloader/include/"
-    ]
+    ],
+    "C_Cpp.autoAddFileAssociations": false
 }
