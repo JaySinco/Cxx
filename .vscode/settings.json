@@ -30,5 +30,6 @@
         "${workspaceFolder}/external/lua/include/",
         "${workspaceFolder}/external/tinyobjloader/include/"
     ],
-    "C_Cpp.autoAddFileAssociations": false
+    "C_Cpp.autoAddFileAssociations": false,
+    "explorer.autoReveal": false
 }

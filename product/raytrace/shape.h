@@ -1,5 +1,6 @@
+#pragma once
+#include "material.h"
 #include "ray.h"
-#include <memory>
 #include <vector>
 
 class hitable_list : public hitable {
@@ -20,9 +21,10 @@ private:
 class sphere : public hitable {
 public:
     sphere() {}
-    sphere(vec3 c, float r)
+    sphere(vec3 c, float r, std::shared_ptr<material> m)
         : center(c)
         , radius(r)
+        , mat(m)
     {
     }
     bool hit(const ray& r, float t_min, float t_max, hit_record& rec) const override;
@@ -30,4 +32,5 @@ public:
 private:
     vec3 center;
     float radius;
+    std::shared_ptr<material> mat;
 };

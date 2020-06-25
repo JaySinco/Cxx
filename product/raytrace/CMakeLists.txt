@@ -3,6 +3,10 @@ add_custom_target(__target_${MODULE_NAME})
 
 add_executable(raytrace
     ray.h
+    ray.cc
+    camera.h
+    material.h
+    material.cc
     shape.h
     shape.cc
     main.cc
