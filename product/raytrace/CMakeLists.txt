@@ -2,8 +2,9 @@ set(MODULE_NAME product_raytrace)
 add_custom_target(__target_${MODULE_NAME})
 
 add_executable(raytrace
+    base.h
+    base.cc
     ray.h
-    ray.cc
     camera.h
     material.h
     material.cc

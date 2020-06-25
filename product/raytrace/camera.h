@@ -3,7 +3,6 @@
 
 class camera {
 public:
-    camera() {}
     ray get_ray(float u, float v) { return { origin, low_left + u * horizonal + v * vertical }; }
 
 private:
