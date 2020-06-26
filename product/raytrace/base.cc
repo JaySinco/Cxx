@@ -46,3 +46,28 @@ vec3 sqrt(const vec3& v)
     res[2] = std::sqrt(v[2]);
     return res;
 }
+
+bool refract(const vec3& v, const vec3& n, float ni_over_nt, vec3& refracted)
+{
+    vec3 uv = normalize(v);
+    float dt = dot(uv, n);
+    float discrim = 1.0 - ni_over_nt * ni_over_nt * (1 - dt * dt);
+    if (discrim > 0) {
+        refracted = ni_over_nt * (uv - n * dt) - n * std::sqrt(discrim);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+float schlick(float cosine, float ref_idx)
+{
+    float r0 = (1 - ref_idx) / (1 + ref_idx);
+    r0 = r0 * r0;
+    return r0 + (1 - r0) * std::pow(1 - cosine, 5);
+}
+
+float length(const vec3& v)
+{
+    return std::sqrt(dot(v, v));
+}

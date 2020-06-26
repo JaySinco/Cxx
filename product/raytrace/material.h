@@ -35,3 +35,16 @@ private:
     float fuzz_;
     vec3 albedo_;
 };
+
+class dielectric : public material {
+public:
+    dielectric(float ri)
+        : ref_idx(ri)
+    {
+    }
+    ~dielectric() = default;
+    bool scatter(const ray& r_in, const hit_record& rec, vec3& decay, ray& r_out) const override;
+
+private:
+    float ref_idx;
+};
