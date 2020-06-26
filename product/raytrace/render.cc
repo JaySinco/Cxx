@@ -20,6 +20,14 @@ vec3 color(const ray& r, const container& word, int depth)
     return (1 - t) * RGB(1, 1, 1) + t * RGB(0.5, 0.7, 1);
 }
 
+cv::Mat renderer::render_scene(const scenery& scene, const quality& qua)
+{
+    container word;
+    camera cam;
+    scene(qua, word, cam);
+    return render(word, cam, qua);
+}
+
 void parallel_renderer::split(int width, int height, std::vector<small_region>& region_list) const
 {
     int nx = width / unit_w_;
@@ -83,9 +91,9 @@ cv::Mat parallel_renderer::render(const container& word, const camera& cam, cons
             this, region, std::cref(word), std::cref(cam), std::cref(qua));
     }
     cv::Mat output = cv::Mat::zeros(qua.h, qua.w, CV_32FC3);
-    const std::string name = "vray";
+    const std::string name = "raytrace";
     cv::namedWindow(name, CV_WINDOW_NORMAL);
-    cv::resizeWindow(name, std::max(qua.w, 800), std::max(qua.h, 400));
+    cv::resizeWindow(name, std::max(qua.w, 800), std::max(qua.w, 800) / qua.w * qua.h);
     for (int i = 0; i < all_sub_region.size(); ++i) {
         piece_of_work ret;
         queue.wait_dequeue(ret);

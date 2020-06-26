@@ -3,11 +3,14 @@
 
 class camera {
 public:
-    ray get_ray(float u, float v) const { return { origin, low_left + u * horizonal + v * vertical }; }
+    camera() {}
+    camera(vec3 lookfrom, vec3 lookat, vec3 up, float fov, float aspect, float aperture, float focus_dist);
+    ray get_ray(float u, float v) const;
 
 private:
-    vec3 origin { 0, 0, 0 };
-    vec3 low_left { -2, -1, -1 };
-    vec3 horizonal { 4, 0, 0 };
-    vec3 vertical { 0, 2, 0 };
+    vec3 origin;
+    vec3 low_left;
+    vec3 horizonal;
+    vec3 vertical;
+    float lens_radius;
 };

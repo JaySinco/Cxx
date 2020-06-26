@@ -6,10 +6,13 @@ add_executable(raytrace
     base.cc
     ray.h
     camera.h
+    camera.cc
     material.h
     material.cc
     shape.h
     shape.cc
+    scenery.h
+    scenery.cc
     render.h
     render.cc
     main.cc

@@ -71,3 +71,17 @@ float length(const vec3& v)
 {
     return std::sqrt(dot(v, v));
 }
+
+vec3 cross(const vec3& v1, const vec3& v2)
+{
+    return v1.cross(v2);
+}
+
+vec3 random_in_unit_disk()
+{
+    vec3 p;
+    do {
+        p = 2 * vec3(rand0_1(), rand0_1(), 0) - vec3(1, 1, 0);
+    } while (dot(p, p) >= 1);
+    return p;
+}

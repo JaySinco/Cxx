@@ -1,25 +1,20 @@
 #pragma once
-
 #include "blockingconcurrentqueue.h"
-#include "camera.h"
 #include "common/utility/threadpool.h"
 #include "material.h"
 #include "ray.h"
-#include "shape.h"
+#include "scenery.h"
 
 vec3 color(const ray& r, const container& word, int depth);
-
-struct quality {
-    int w, h, ns; // width, height, sample
-};
 
 class renderer {
 public:
     virtual ~renderer() {};
     virtual cv::Mat render(const container& word, const camera& cam, const quality& qua) = 0;
+    cv::Mat render_scene(const scenery& scene, const quality& qua);
 };
 
-class parallel_renderer : renderer {
+class parallel_renderer : public renderer {
 public:
     parallel_renderer(int n_threads, int unit_w, int unit_h)
         : pool(n_threads)
