@@ -13,6 +13,7 @@ struct hit_record {
 
 class shape {
 public:
+    virtual ~shape() {};
     virtual bool hit(const ray& r, float t_min, float t_max, hit_record& rec) const = 0;
 
     template <typename T, typename... Args>
@@ -21,7 +22,7 @@ public:
         material_ = std::make_shared<T>(std::forward<Args>(args)...);
     }
 
-    std::shared_ptr<material> stuff() { return material_; }
+    std::shared_ptr<material> made_from() { return material_; }
 
 protected:
     std::shared_ptr<material> material_;
@@ -29,6 +30,7 @@ protected:
 
 class container : public shape {
 public:
+    ~container() = default;
     bool hit(const ray& r, float t_min, float t_max, hit_record& rec) const override;
     void put(std::shared_ptr<shape> obj) { list.push_back(obj); }
 
@@ -43,6 +45,7 @@ public:
         , radius_(radius)
     {
     }
+    ~sphere() = default;
     bool hit(const ray& r, float t_min, float t_max, hit_record& rec) const override;
 
 private:

@@ -25,6 +25,7 @@
         "${workspaceFolder}/external/linux/x64/mongo/include/mongocxx/v_noabi/",
         "${workspaceFolder}/external/linux/x64/glm/include/",
         "${workspaceFolder}/external/linux/x64/stb/include/",
+        "${workspaceFolder}/external/linux/x64/concurrentqueue/include/",
         "${workspaceFolder}/external/linux/x64/opencv/include/",
         "${workspaceFolder}/external/glad/include/",
         "${workspaceFolder}/external/lua/include/",

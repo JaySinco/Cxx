@@ -4,6 +4,7 @@
 
 class material {
 public:
+    virtual ~material() {};
     virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& decay, ray& r_out) const = 0;
 };
 
@@ -13,6 +14,7 @@ public:
         : albedo_(albedo)
     {
     }
+    ~diffuse() = default;
     bool scatter(const ray& r_in, const hit_record& rec, vec3& decay, ray& r_out) const override;
 
 private:
@@ -26,6 +28,7 @@ public:
         , fuzz_(std::min(fuzz, 1.0f))
     {
     }
+    ~metal() = default;
     bool scatter(const ray& r_in, const hit_record& rec, vec3& decay, ray& r_out) const override;
 
 private:

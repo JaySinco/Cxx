@@ -28,6 +28,7 @@ list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/mongo/include/mongocxx/v_noabi/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/glm/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/stb/include/)
+list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/concurrentqueue/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/${TARGET_OS}/${TARGET_ABI}/opencv/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/glad/include/)
 list(APPEND INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/lua/include/)

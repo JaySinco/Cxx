@@ -10,6 +10,8 @@ add_executable(raytrace
     material.cc
     shape.h
     shape.cc
+    render.h
+    render.cc
     main.cc
     )
 target_link_libraries(raytrace

@@ -1,6 +1,7 @@
 #pragma once
+#include "common/utility/base.h"
 #include <memory>
-#include <opencv2/core/matx.hpp>
+#include <opencv2/core/core.hpp>
 
 #define RGB(r, g, b) vec3(b, g, r)
 

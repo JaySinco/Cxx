@@ -3,7 +3,7 @@
 
 class camera {
 public:
-    ray get_ray(float u, float v) { return { origin, low_left + u * horizonal + v * vertical }; }
+    ray get_ray(float u, float v) const { return { origin, low_left + u * horizonal + v * vertical }; }
 
 private:
     vec3 origin { 0, 0, 0 };
